@@ -52,7 +52,7 @@ def download_adjusted(ticker: str) -> pd.DataFrame:
     raise RuntimeError(f"{ticker}: falha ao baixar dados: {last_error}")
 
 
-def normalize_and_validate(ticker: str, raw: pd.DataFrame) -> pd.DataFrame:
+def normalize_and_validate(ticker: str, raw: pd.DataFrame) -> tuple[pd.DataFrame, int]:
     required = ["Open", "High", "Low", "Close", "Volume"]
     missing = [col for col in required if col not in raw.columns]
     if missing:
@@ -87,16 +87,33 @@ def normalize_and_validate(ticker: str, raw: pd.DataFrame) -> pd.DataFrame:
     if (df["volume"] < 0).any():
         raise RuntimeError(f"{ticker}: volume negativo")
 
+    # Algumas séries Yahoo ajustadas contêm raros candles históricos em que High/Low
+    # não englobam Open/Close. Mantemos Open/Close da fonte e canonizamos somente
+    # os extremos, de forma determinística, antes do gate final.
+    original_high = df["high"].copy()
+    original_low = df["low"].copy()
+    extrema = df[["open", "high", "low", "close"]]
+    df["high"] = extrema.max(axis=1)
+    df["low"] = extrema.min(axis=1)
+    repaired_rows = int(((df["high"] != original_high) | (df["low"] != original_low)).sum())
+
     max_ocl = df[["open", "close", "low"]].max(axis=1)
     min_och = df[["open", "close", "high"]].min(axis=1)
-    bad = (df["high"] + 1e-9 < max_ocl) | (df["low"] - 1e-9 > min_och)
+    bad = (df["high"] + 1e-12 < max_ocl) | (df["low"] - 1e-12 > min_och)
     if bad.any():
         first = df.index[bad][0].date().isoformat()
-        raise RuntimeError(f"{ticker}: candle OHLC inválido em {first}")
+        raise RuntimeError(f"{ticker}: candle OHLC inválido após reparo em {first}")
 
-    # Arredondamento apenas de serialização; os preços já vêm ajustados por auto_adjust.
     df[["open", "high", "low", "close"]] = df[["open", "high", "low", "close"]].round(8)
-    return df
+
+    # Revalida após arredondamento/serialização.
+    if (
+        (df["high"] < df[["open", "close", "low"]].max(axis=1))
+        | (df["low"] > df[["open", "close", "high"]].min(axis=1))
+    ).any():
+        raise RuntimeError(f"{ticker}: OHLC inválido após arredondamento")
+
+    return df, repaired_rows
 
 
 def main() -> int:
@@ -108,19 +125,23 @@ def main() -> int:
     staging_quotes.mkdir(parents=True, exist_ok=True)
 
     summaries: list[str] = []
+    total_repairs = 0
     for pos, ticker in enumerate(TICKERS, start=1):
         print(f"[{pos:02d}/40] {ticker}", flush=True)
-        df = normalize_and_validate(ticker, download_adjusted(ticker))
+        df, repaired_rows = normalize_and_validate(ticker, download_adjusted(ticker))
+        total_repairs += repaired_rows
         target = staging_quotes / f"{ticker}.csv"
         df.to_csv(target, date_format="%Y-%m-%d", lineterminator="\n")
         summaries.append(
-            f"{ticker}: {len(df)} rows, {df.index[0].date().isoformat()} -> {df.index[-1].date().isoformat()}"
+            f"{ticker}: {len(df)} rows, {df.index[0].date().isoformat()} -> "
+            f"{df.index[-1].date().isoformat()}, canonicalized_candles={repaired_rows}"
         )
 
     files = sorted(staging_quotes.glob("*.csv"))
     if len(files) != 40:
         raise RuntimeError(f"esperados 40 CSVs, encontrados {len(files)}")
 
+    # Só toca em data/ depois que todas as 40 séries passaram o gate.
     shutil.rmtree(OUTPUT_DIR.parent, ignore_errors=True)
     OUTPUT_DIR.parent.mkdir(parents=True, exist_ok=True)
     shutil.move(str(staging_quotes), str(OUTPUT_DIR))
@@ -129,7 +150,8 @@ def main() -> int:
     print("\nVALIDATED ADJUSTED QUOTES")
     for line in summaries:
         print(line)
-    print(f"\nOK: {len(files)} séries em {OUTPUT_DIR}")
+    print(f"\nCanonicalized OHLC rows: {total_repairs}")
+    print(f"OK: {len(files)} séries em {OUTPUT_DIR}")
     return 0
 
 
