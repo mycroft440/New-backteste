@@ -64,15 +64,30 @@ def main() -> int:
     sys.path.insert(0, str(upstream))
     from b3_strategy_lab.strategies import (  # noqa: E402
         available_strategies,
+        portfolio_strategies,
         strategy_info,
         strategy_parameters,
     )
     from scripts.research_portfolio_allocation import _configs  # noqa: E402
 
-    # available_strategies() é deliberadamente usado em vez de uma lista copiada.
-    # Isso faz o novo backtest herdar automaticamente todo o catálogo canônico,
-    # inclusive additional/researched/extended/user_extensions.
-    strategies = list(available_strategies())
+    # O objetivo é realmente testar TODO o catálogo disponível. O executor de
+    # estratégia+gerenciamento do upstream aceita portfolio_strategies(); portanto,
+    # qualquer divergência entre os dois catálogos deve interromper a rodada em vez
+    # de excluir silenciosamente uma estratégia recém-adicionada.
+    available = list(available_strategies())
+    engine_supported = list(portfolio_strategies())
+    available_set = set(available)
+    supported_set = set(engine_supported)
+    if available_set != supported_set:
+        missing_from_engine = sorted(available_set - supported_set)
+        unexpected_in_engine = sorted(supported_set - available_set)
+        raise SystemExit(
+            "catálogo completo diverge das estratégias aceitas pelo motor de portfólio; "
+            f"ausentes_no_motor={missing_from_engine!r} "
+            f"extras_no_motor={unexpected_in_engine!r}"
+        )
+
+    strategies = available
     configs = list(_configs("adjusted", "all"))
 
     if not strategies:
@@ -123,6 +138,7 @@ def main() -> int:
         "source_files": source_files,
         "signal_mode": "adjusted",
         "config_set": "all",
+        "full_available_catalog_equals_portfolio_engine_catalog": True,
         "strategy_count": len(strategies),
         "management_count": len(configs),
         "combination_count": len(strategies) * len(configs),
