@@ -1,0 +1,53 @@
+{
+  "status": "PASS",
+  "source_repository": "mycroft440/b3-strategy-lab",
+  "source_commit": "8cb3a9e906dfae69e74d26d8cd3a9c76c380d55d",
+  "tickers": 40,
+  "strategies": 40,
+  "pair_simulations": 1600,
+  "source_signal_pairs_exact": 1600,
+  "source_signal_values_compared": 8888160,
+  "engine_reference_pairs_exact": 1600,
+  "matrix_detail_rows_verified": 1600,
+  "matrix_annual_rows_verified": 400,
+  "matrix_summary_rows_verified": 40,
+  "causality_strategy_checks": 40,
+  "common_start": "2017-02-24",
+  "common_end": "2026-09-10",
+  "full_calendar_years": [
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "commission_bps": 0.0,
+  "slippage_bps": 0.0,
+  "portfolio_management": false,
+  "dividends_jcp_added_by_engine": false,
+  "largest_completed_trade": {
+    "return_pct": 2277.079863096183,
+    "strategy": "sma_cross_100_200",
+    "ticker": "MGLU3",
+    "entry_date": "2017-02-24",
+    "exit_date": "2021-05-18"
+  },
+  "worst_completed_trade": {
+    "return_pct": -56.959564591839005,
+    "strategy": "rsi3_reversion_15_70",
+    "ticker": "PETR4",
+    "entry_date": "2020-02-27",
+    "exit_date": "2020-03-19"
+  },
+  "verification_contract": [
+    "ported signals equal pinned B3 Strategy Lab signals on the same repaired split-only candles",
+    "production execution engine equals an independently implemented cash/share simulator",
+    "all 1,600 detail rows equal independent recomputation",
+    "annual aggregation and all 40 strategy summary rows equal independent recomputation",
+    "future candle mutation does not change past signals for any of the 40 strategies",
+    "trusted comparison window contains no unhandled >=2x or <=0.5x one-day scale discontinuity"
+  ]
+}
