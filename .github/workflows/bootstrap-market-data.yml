@@ -1,4 +1,4 @@
-name: Build adjusted B3 quotes
+name: Build split-only B3 quotes
 
 on:
   workflow_dispatch:
@@ -12,7 +12,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: adjusted-b3-quotes
+  group: split-only-b3-quotes
   cancel-in-progress: true
 
 jobs:
@@ -33,7 +33,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install "pandas>=2.2,<3" "scipy>=1.14,<2" "yfinance>=0.2.65,<1"
 
-      - name: Build and validate 40 adjusted daily quote files
+      - name: Build and validate 40 split-adjusted price-only quote files
         run: |
           set -euo pipefail
           python scripts/bootstrap_market_data.py
@@ -50,5 +50,5 @@ jobs:
             echo "No quote changes to commit."
             exit 0
           fi
-          git commit -m "data: materialize 40 adjusted B3 quote series"
+          git commit -m "data: materialize 40 split-only B3 quote series"
           git push origin HEAD:main
