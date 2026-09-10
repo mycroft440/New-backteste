@@ -1,0 +1,62 @@
+{
+  "indicator": "roc252_126_63_filter__roc22_over_vol18__sma200",
+  "management_strategy": "top1_short22_riskadj_rocfilter_w1_1_1_trend200_vol18_posscore",
+  "source": {
+    "repository": "mycroft440/b3-strategy-lab",
+    "result_commit": "bb2533bacaadecbef102869a0fe89407d2eddf22",
+    "result_report": "reports/portfolio_allocation_research_raw_events_raw_1d_roc_filter_short_fine_sweep.csv",
+    "code_commit": "8cb3a9e906dfae69e74d26d8cd3a9c76c380d55d",
+    "code_module": "scripts/research_portfolio_allocation_core.py",
+    "source_config": "top1_short22_riskadj_rocfilter_w1_1_1_trend200_vol18_posscore",
+    "source_full_return": 187.20552082879905,
+    "source_full_cagr": 0.21820719045957193,
+    "source_full_max_drawdown": -0.6457170553521918,
+    "source_full_sharpe": 0.7839165097900773,
+    "source_test_return": 11.934350255545647,
+    "source_cost_bps": 3.2,
+    "source_slippage_bps": 10.0
+  },
+  "adaptation": {
+    "universe": "the 40 local New-backteste tickers, not the source lab historical universe",
+    "prices": "local split-only close; dividends/JCP excluded",
+    "timing": "decision at monthly common-session close; execution at next common-session open",
+    "finalization": "source-faithful final close liquidation"
+  },
+  "initial_cash_brl": 1000.0,
+  "start": "2017-02-24",
+  "end": "2026-09-10",
+  "final_equity_brl": 1826.8728764835876,
+  "final_profit_brl": 826.8728764835876,
+  "final_return_pct": 82.68728764835875,
+  "max_drawdown_pct": -78.46309724220575,
+  "losing_full_calendar_years": [
+    2021,
+    2022,
+    2024
+  ],
+  "mean_full_calendar_year_return_pct": 24.215671606383157,
+  "rebalance_count": 115,
+  "order_count": 220,
+  "commission_bps": 3.2,
+  "slippage_bps": 10.0,
+  "known_scale_repairs_applied": 1,
+  "latest_rebalance": {
+    "decision_date": "2026-08-31 00:00:00",
+    "execution_date": "2026-09-01 00:00:00",
+    "eligible_tickers": "B3SA3;CPLE3;ENEV3;KLBN11;PETR4;RAIL3;SMTO3;UGPA3;WEGE3",
+    "selected_ticker": "SMTO3",
+    "selected_score": 0.7685276251712629
+  },
+  "contract": {
+    "filter_1": "equal-weight mean of ROC252, ROC126 and ROC63 must be > 0",
+    "filter_2": "ROC22 must be > 0",
+    "filter_3": "close must be > SMA200",
+    "ranking": "highest ROC22 / annualized sample volatility of the last 18 returns",
+    "selection_count": 1,
+    "target_weight": "100% of available capital in the Top-1 ticker",
+    "rebalance": "monthly at last common trading close",
+    "execution": "next common trading session open",
+    "between_rebalances": "hold the monthly target; no external binary strategy exit/re-entry",
+    "no_candidate": "100% cash"
+  }
+}
