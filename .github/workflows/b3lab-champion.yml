@@ -1,0 +1,88 @@
+name: Validate B3 Strategy Lab champion
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/b3_backtest/indicators/b3lab_champion.py'
+      - 'src/b3_backtest/portfolio/b3lab_champion.py'
+      - 'src/b3_backtest/portfolio/champion_engine.py'
+      - 'src/b3_backtest/portfolio/__init__.py'
+      - 'scripts/run_b3lab_champion.py'
+      - 'tests/test_b3lab_champion.py'
+      - '.github/workflows/b3lab-champion.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: b3lab-champion-main
+  cancel-in-progress: true
+
+jobs:
+  champion:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip pandas pytest
+      - name: Run champion and regression tests
+        env:
+          PYTHONPATH: src
+        run: pytest -q tests/test_b3lab_champion.py tests/test_portfolio_management.py tests/test_backtest_engine.py tests/test_signal_strategies.py
+      - name: Run champion on all 40 local tickers
+        env:
+          PYTHONPATH: src
+        run: python scripts/run_b3lab_champion.py
+      - name: Validate materialized champion outputs
+        run: |
+          test -f results/portfolio/b3lab_champion/summary.json
+          test -f results/portfolio/b3lab_champion/rebalance_candidates.csv
+          test -f results/portfolio/b3lab_champion/rebalance_summary.csv
+          test -f results/portfolio/b3lab_champion/orders.csv
+          test -f results/portfolio/b3lab_champion/equity_curve.csv
+          test -f results/portfolio/b3lab_champion/annual_returns.csv
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+          import pandas as pd
+
+          root = Path('results/portfolio/b3lab_champion')
+          data = json.loads((root / 'summary.json').read_text())
+          assert data['management_strategy'] == 'top1_short22_riskadj_rocfilter_w1_1_1_trend200_vol18_posscore'
+          assert data['indicator'] == 'roc252_126_63_filter__roc22_over_vol18__sma200'
+          assert data['source']['result_commit'] == 'bb2533bacaadecbef102869a0fe89407d2eddf22'
+          assert data['initial_cash_brl'] == 1000.0
+          assert data['commission_bps'] == 3.2
+          assert data['slippage_bps'] == 10.0
+          assert math.isfinite(data['final_equity_brl']) and data['final_equity_brl'] > 0
+          assert math.isfinite(data['final_return_pct'])
+          assert math.isfinite(data['max_drawdown_pct'])
+
+          candidates = pd.read_csv(root / 'rebalance_candidates.csv')
+          orders = pd.read_csv(root / 'orders.csv')
+          curve = pd.read_csv(root / 'equity_curve.csv')
+          assert not candidates.empty
+          assert not orders.empty
+          assert int(candidates['selected'].fillna(False).astype(bool).groupby(candidates['decision_date']).sum().max()) <= 1
+          assert orders.iloc[-1]['reason'] == 'final_close_liquidation'
+          assert str(curve.iloc[-1]['held_ticker']) in ('', 'nan')
+          assert int(curve.iloc[-1]['shares']) == 0
+          PY
+      - name: Commit champion result
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add results/portfolio/b3lab_champion
+          if git diff --cached --quiet; then
+            echo 'No champion result changes to commit.'
+          else
+            git commit -m 'portfolio: materialize B3 Strategy Lab champion result'
+            git pull --rebase origin main
+            git push
+          fi
