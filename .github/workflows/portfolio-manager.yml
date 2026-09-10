@@ -1,0 +1,62 @@
+name: Validate single portfolio manager
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/b3_backtest/portfolio/**'
+      - 'scripts/run_portfolio_backtest.py'
+      - 'tests/test_portfolio_management.py'
+      - '.github/workflows/portfolio-manager.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: portfolio-manager-main
+  cancel-in-progress: true
+
+jobs:
+  portfolio:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip pandas pytest
+      - name: Test portfolio manager
+        env:
+          PYTHONPATH: src
+        run: pytest -q tests/test_portfolio_management.py tests/test_backtest_engine.py tests/test_signal_strategies.py
+      - name: Run portfolio smoke backtest
+        env:
+          PYTHONPATH: src
+        run: python scripts/run_portfolio_backtest.py --signal-strategy macd_24_52_18
+      - name: Validate outputs
+        run: |
+          test -f results/portfolio/macd_24_52_18/summary.json
+          test -f results/portfolio/macd_24_52_18/rebalance_candidates.csv
+          test -f results/portfolio/macd_24_52_18/rebalance_summary.csv
+          test -f results/portfolio/macd_24_52_18/orders.csv
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path('results/portfolio/macd_24_52_18/summary.json').read_text())
+          assert data['management_strategy'] == 'top1_momentum_lb126_monthly_signal_filter'
+          assert data['initial_cash_brl'] == 1000.0
+          PY
+      - name: Commit smoke result
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add results/portfolio
+          if git diff --cached --quiet; then
+            echo 'No portfolio result changes to commit.'
+          else
+            git commit -m 'portfolio: materialize top1 momentum smoke result'
+            git pull --rebase origin main
+            git push
+          fi
