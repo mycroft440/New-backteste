@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "strategy": "top1_short22_riskadj_rocfilter_w1_1_1_trend200_vol18_posscore",
+  "indicator": "roc252_126_63_filter__roc22_over_vol18__sma200",
+  "tickers": 40,
+  "decision_checks": 115,
+  "candidate_rows_checked": 4600,
+  "orders_checked": 220,
+  "equity_rows_checked": 2377,
+  "annual_rows_checked": 10,
+  "final_equity_brl": 1826.872876483588,
+  "final_return_pct": 82.6872876483588,
+  "max_drawdown_pct": -78.46309724220575,
+  "losing_full_calendar_years": [
+    2021,
+    2022,
+    2024
+  ],
+  "mean_full_calendar_year_return_pct": 24.21567160638316,
+  "last_order_reason": "final_close_liquidation"
+}
