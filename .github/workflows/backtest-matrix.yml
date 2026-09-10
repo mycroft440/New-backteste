@@ -15,6 +15,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: backtest-matrix-main
+  cancel-in-progress: true
+
 jobs:
   backtest:
     runs-on: ubuntu-latest
@@ -50,5 +54,6 @@ jobs:
             echo 'No result changes to commit.'
           else
             git commit -m 'backtest: materialize 40-strategy results'
+            git pull --rebase origin main
             git push
           fi
