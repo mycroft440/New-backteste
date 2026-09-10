@@ -1,0 +1,715 @@
+name: New backtest — full B3 catalog
+
+on:
+  workflow_dispatch:
+    inputs:
+      upstream_ref:
+        description: Branch, tag ou SHA do b3-strategy-lab; o SHA efetivo fica congelado na execução
+        required: true
+        default: main
+        type: string
+      start:
+        description: Data inicial do backtest
+        required: true
+        default: "2018-01-02"
+        type: string
+      end:
+        description: Data final; vazio usa o último cutoff verificável já presente no b3-strategy-lab
+        required: false
+        default: ""
+        type: string
+      shards:
+        description: Quantidade de shards por estratégia
+        required: true
+        default: "32"
+        type: string
+      max_parallel:
+        description: Máximo de shards simultâneos no GitHub Actions
+        required: true
+        default: "20"
+        type: string
+      initial_cash:
+        description: Capital inicial em reais
+        required: true
+        default: "1000"
+        type: string
+      cost_bps:
+        description: Custo por ordem em bps na matriz retrospectiva
+        required: true
+        default: "3.2"
+        type: string
+      slippage_bps:
+        description: Slippage em bps na matriz retrospectiva
+        required: true
+        default: "10"
+        type: string
+      top_n:
+        description: Finalistas da matriz para replay realista
+        required: true
+        default: "10"
+        type: string
+      run_walk_forward:
+        description: Rodar também validação causal OOS certificada do catálogo completo
+        required: true
+        default: true
+        type: boolean
+      first_test_year:
+        description: Primeiro ano totalmente fora da amostra
+        required: true
+        default: "2021"
+        type: string
+      last_test_year:
+        description: Último ano OOS; vazio usa o último disponível
+        required: false
+        default: ""
+        type: string
+      objective:
+        description: Métrica usada somente no treino do walk-forward
+        required: true
+        default: cagr
+        type: choice
+        options:
+          - cagr
+          - total_return
+          - sharpe
+
+run-name: "New backtest — full catalog @ ${{ inputs.upstream_ref }}"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: new-backteste-full-catalog
+  cancel-in-progress: false
+
+env:
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  prepare:
+    name: Freeze upstream and prepare point-in-time data
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    outputs:
+      upstream_sha: ${{ steps.catalog.outputs.upstream_sha }}
+      matrix: ${{ steps.catalog.outputs.matrix }}
+      strategy_count: ${{ steps.catalog.outputs.strategy_count }}
+      management_count: ${{ steps.catalog.outputs.management_count }}
+      combination_count: ${{ steps.catalog.outputs.combination_count }}
+      shard_count: ${{ steps.catalog.outputs.shard_count }}
+      certified_end: ${{ steps.cutoff.outputs.certified_end }}
+      resolved_end: ${{ steps.cutoff.outputs.resolved_end }}
+    steps:
+      - name: Checkout New-backteste
+        uses: actions/checkout@v4
+
+      - name: Checkout b3-strategy-lab
+        uses: actions/checkout@v4
+        with:
+          repository: mycroft440/b3-strategy-lab
+          ref: ${{ inputs.upstream_ref }}
+          path: upstream
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: upstream/requirements-test.txt
+
+      - name: Install upstream dependencies
+        run: python -m pip install -r upstream/requirements-test.txt
+
+      - name: Run upstream test suite before research
+        working-directory: upstream
+        run: python -m pytest -q
+
+      - name: Resolve certified data cutoff
+        id: cutoff
+        env:
+          REQUESTED_END: ${{ inputs.end }}
+        run: |
+          python scripts/resolve_cutoff.py \
+            --upstream upstream \
+            --requested-end "$REQUESTED_END" \
+            --github-output "$GITHUB_OUTPUT"
+
+      - name: Freeze complete strategy and management catalog
+        id: catalog
+        run: |
+          python scripts/catalog_manifest.py \
+            --upstream upstream \
+            --shards "${{ inputs.shards }}" \
+            --output reports/CATALOG.json \
+            --github-output "$GITHUB_OUTPUT"
+
+      - name: Validate shard and parallel inputs
+        env:
+          SHARDS: ${{ inputs.shards }}
+          MAX_PARALLEL: ${{ inputs.max_parallel }}
+          TOP_N: ${{ inputs.top_n }}
+        run: |
+          python - <<'PY'
+          import os
+          for name in ("SHARDS", "MAX_PARALLEL", "TOP_N"):
+              value = int(os.environ[name])
+              if value <= 0:
+                  raise SystemExit(f"{name} precisa ser maior que zero")
+          PY
+
+      - name: Cache official COTAHIST archives
+        uses: actions/cache@v4
+        with:
+          path: upstream/.cache/cotahist
+          key: cotahist-${{ runner.os }}-${{ inputs.start }}-${{ steps.cutoff.outputs.resolved_end }}
+          restore-keys: |
+            cotahist-${{ runner.os }}-${{ inputs.start }}-
+            cotahist-${{ runner.os }}-
+
+      - name: Verify versioned upstream market data
+        working-directory: upstream
+        env:
+          RESOLVED_END: ${{ steps.cutoff.outputs.resolved_end }}
+        run: |
+          set -euo pipefail
+          python -m b3_strategy_lab verify-data --interval 1d
+          python scripts/audit_backtest_readiness.py \
+            --max-age-calendar-days 4 \
+            --expected-end "$RESOLVED_END" \
+            --allow-historical-cutoff
+          python scripts/audit_backtest_integrity.py --start "${{ inputs.start }}"
+          python scripts/audit_volume_indicators.py
+
+      - name: Build survivorship-safe point-in-time universe
+        working-directory: upstream
+        env:
+          START_DATE: ${{ inputs.start }}
+          END_DATE: ${{ steps.cutoff.outputs.resolved_end }}
+        run: |
+          set -euo pipefail
+          START_YEAR="${START_DATE:0:4}"
+          END_YEAR="${END_DATE:0:4}"
+          SOURCE_YEARS="$((10#$START_YEAR - 1)):$((10#$END_YEAR))"
+          python scripts/build_survivorship_safe_realistic_universe.py \
+            --start "$START_DATE" \
+            --end "$END_DATE" \
+            --years "$SOURCE_YEARS" \
+            --download
+          python scripts/build_ticker_transitions.py \
+            --years "$SOURCE_YEARS" \
+            --download
+          python scripts/sync_point_in_time_universe_realistic.py \
+            --years "$SOURCE_YEARS" \
+            --download \
+            --refresh-actions
+
+      - name: Audit realistic inputs without hiding certification gaps
+        id: realistic_audit
+        working-directory: upstream
+        run: |
+          set -euo pipefail
+          set +e
+          python scripts/audit_realistic_backtest_inputs.py
+          RC=$?
+          set -e
+          if [ "$RC" -ne 0 ] && [ "$RC" -ne 2 ]; then
+            exit "$RC"
+          fi
+          python - "$GITHUB_OUTPUT" <<'PY'
+          import json, sys
+          from pathlib import Path
+          payload = json.loads(Path("reports/realistic_input_audit.json").read_text())
+          with Path(sys.argv[1]).open("a", encoding="utf-8") as out:
+              out.write("estimate_ready=" + ("true" if payload.get("ready_for_realistic_estimate") is True else "false") + "\n")
+              out.write("certified=" + ("true" if payload.get("ready_for_certified_market_inputs") is True else "false") + "\n")
+          if payload.get("ready_for_realistic_estimate") is not True:
+              raise SystemExit("realistic structural inputs are not ready")
+          PY
+
+      - name: Hash exact generated point-in-time snapshot
+        working-directory: upstream
+        run: |
+          set -euo pipefail
+          mkdir -p "$GITHUB_WORKSPACE/reports"
+          find \
+            data/candles_point_in_time \
+            data/actions_point_in_time \
+            data/manifests_point_in_time \
+            data/universes \
+            data/execution \
+            data/corporate_actions \
+            -type f -print0 \
+            | sort -z \
+            | xargs -0 sha256sum \
+            > "$GITHUB_WORKSPACE/reports/DATA_FILES.sha256"
+          sha256sum "$GITHUB_WORKSPACE/reports/DATA_FILES.sha256" \
+            > "$GITHUB_WORKSPACE/reports/DATA_SNAPSHOT.sha256"
+          cp reports/realistic_input_audit.json "$GITHUB_WORKSPACE/reports/REALISTIC_INPUT_AUDIT.json"
+
+      - name: Upload prepared point-in-time data
+        uses: actions/upload-artifact@v4
+        with:
+          name: prepared-data-${{ github.run_id }}
+          path: |
+            upstream/data/candles_point_in_time
+            upstream/data/actions_point_in_time
+            upstream/data/manifests_point_in_time
+            upstream/data/universes
+            upstream/data/execution
+            upstream/data/corporate_actions
+            upstream/data/quality_reviews.json
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 6
+
+      - name: Upload run contract and audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: run-contract-${{ github.run_id }}
+          path: |
+            reports/CATALOG.json
+            reports/DATA_FILES.sha256
+            reports/DATA_SNAPSHOT.sha256
+            reports/REALISTIC_INPUT_AUDIT.json
+          if-no-files-found: error
+          retention-days: 90
+
+  backtest:
+    name: "Shard ${{ matrix.index }} — ${{ matrix.strategy_count }} strategies"
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      max-parallel: ${{ fromJSON(inputs.max_parallel) }}
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    steps:
+      - name: Checkout New-backteste
+        uses: actions/checkout@v4
+
+      - name: Checkout frozen b3-strategy-lab
+        uses: actions/checkout@v4
+        with:
+          repository: mycroft440/b3-strategy-lab
+          ref: ${{ needs.prepare.outputs.upstream_sha }}
+          path: upstream
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: upstream/requirements-test.txt
+
+      - name: Install dependencies
+        run: python -m pip install -r upstream/requirements-test.txt
+
+      - name: Download exact point-in-time data
+        uses: actions/download-artifact@v4
+        with:
+          name: prepared-data-${{ github.run_id }}
+          path: upstream/data
+
+      - name: Download run contract
+        uses: actions/download-artifact@v4
+        with:
+          name: run-contract-${{ github.run_id }}
+          path: metadata
+
+      - name: Verify point-in-time snapshot hashes
+        working-directory: upstream
+        run: sha256sum -c "$GITHUB_WORKSPACE/metadata/DATA_FILES.sha256"
+
+      - name: Execute exhaustive strategy-management shard
+        env:
+          STRATEGIES: ${{ matrix.strategies }}
+          SHARD_INDEX: ${{ matrix.index }}
+          START_DATE: ${{ inputs.start }}
+          END_DATE: ${{ needs.prepare.outputs.resolved_end }}
+          INITIAL_CASH: ${{ inputs.initial_cash }}
+          COST_BPS: ${{ inputs.cost_bps }}
+          SLIPPAGE_BPS: ${{ inputs.slippage_bps }}
+          TOP_N: ${{ inputs.top_n }}
+        run: |
+          set -euo pipefail
+          mkdir -p reports/shards
+          read -r -a STRATEGY_ARGS <<< "$STRATEGIES"
+          WORKERS="$(nproc)"
+          if [ "$WORKERS" -gt 4 ]; then WORKERS=4; fi
+          cd upstream
+          python scripts/backtest_strategy_management_combinations.py \
+            --strategies "${STRATEGY_ARGS[@]}" \
+            --universe-manifest data/universes/point_in_time_union.json \
+            --start "$START_DATE" \
+            --end "$END_DATE" \
+            --signal-mode adjusted \
+            --config-set all \
+            --initial-cash "$INITIAL_CASH" \
+            --cost-bps "$COST_BPS" \
+            --slippage-bps "$SLIPPAGE_BPS" \
+            --lot-size 1 \
+            --top "$TOP_N" \
+            --workers "$WORKERS" \
+            --output "$GITHUB_WORKSPACE/reports/shards/shard_${SHARD_INDEX}.csv.gz"
+
+      - name: Upload shard
+        uses: actions/upload-artifact@v4
+        with:
+          name: matrix-shard-${{ matrix.index }}-${{ github.run_id }}
+          path: |
+            reports/shards/shard_${{ matrix.index }}.csv.gz
+            reports/shards/shard_${{ matrix.index }}.manifest.json
+            reports/shards/shard_${{ matrix.index }}_top${{ inputs.top_n }}_annual.md
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+
+  merge:
+    name: Merge and prove exhaustive coverage
+    needs: [prepare, backtest]
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: mycroft440/b3-strategy-lab
+          ref: ${{ needs.prepare.outputs.upstream_sha }}
+          path: upstream
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: upstream/requirements-test.txt
+
+      - run: python -m pip install -r upstream/requirements-test.txt
+
+      - name: Download all shards
+        uses: actions/download-artifact@v4
+        with:
+          pattern: matrix-shard-*-${{ github.run_id }}
+          path: reports/shards
+          merge-multiple: true
+
+      - name: Download catalog contract
+        uses: actions/download-artifact@v4
+        with:
+          name: run-contract-${{ github.run_id }}
+          path: metadata
+
+      - name: Merge upstream-compatible matrix
+        env:
+          TOP_N: ${{ inputs.top_n }}
+        run: |
+          set -euo pipefail
+          cd upstream
+          python scripts/merge_matrix_shards.py \
+            --input-dir "$GITHUB_WORKSPACE/reports/shards" \
+            --top "$TOP_N" \
+            --output "$GITHUB_WORKSPACE/reports/FULL_MATRIX.csv.gz" \
+            --summary-output "$GITHUB_WORKSPACE/reports/TOP_${TOP_N}.md" \
+            --json-output "$GITHUB_WORKSPACE/reports/TOP_${TOP_N}.json"
+          python scripts/audit_matrix_results.py \
+            --results "$GITHUB_WORKSPACE/reports/FULL_MATRIX.csv.gz" \
+            --annual-report "$GITHUB_WORKSPACE/reports/FULL_MATRIX_top${TOP_N}_annual.md" \
+            --output "$GITHUB_WORKSPACE/reports/FULL_MATRIX.audit.json"
+
+      - name: Independently verify Cartesian coverage
+        run: |
+          python scripts/verify_matrix.py \
+            --catalog metadata/CATALOG.json \
+            --results reports/FULL_MATRIX.csv.gz \
+            --output reports/FULL_MATRIX.coverage.json
+
+      - name: Show research shortlist
+        env:
+          TOP_N: ${{ inputs.top_n }}
+        run: cat "reports/TOP_${TOP_N}.md" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload exhaustive matrix
+        uses: actions/upload-artifact@v4
+        with:
+          name: exhaustive-matrix-${{ github.run_number }}
+          path: |
+            reports/FULL_MATRIX.csv.gz
+            reports/FULL_MATRIX.manifest.json
+            reports/FULL_MATRIX.audit.json
+            reports/FULL_MATRIX.coverage.json
+            reports/FULL_MATRIX_top${{ inputs.top_n }}_annual.md
+            reports/TOP_${{ inputs.top_n }}.md
+            reports/TOP_${{ inputs.top_n }}.json
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
+
+  realistic_replay:
+    name: Replay research finalists in realistic engine
+    needs: [prepare, merge]
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: mycroft440/b3-strategy-lab
+          ref: ${{ needs.prepare.outputs.upstream_sha }}
+          path: upstream
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: upstream/requirements-test.txt
+
+      - run: python -m pip install -r upstream/requirements-test.txt
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: prepared-data-${{ github.run_id }}
+          path: upstream/data
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: exhaustive-matrix-${{ github.run_number }}
+          path: reports
+
+      - name: Replay top candidates
+        env:
+          TOP_N: ${{ inputs.top_n }}
+        run: |
+          set -euo pipefail
+          cd upstream
+          python scripts/validate_matrix_top_realistic.py \
+            --candidates "$GITHUB_WORKSPACE/reports/TOP_${TOP_N}.json" \
+            --output "$GITHUB_WORKSPACE/reports/REALISTIC_TOP_${TOP_N}.json" \
+            --markdown-output "$GITHUB_WORKSPACE/reports/REALISTIC_TOP_${TOP_N}.md" \
+            --workers 2 \
+            --require-valid "$TOP_N"
+
+      - name: Show realistic finalists
+        if: ${{ success() }}
+        env:
+          TOP_N: ${{ inputs.top_n }}
+        run: cat "reports/REALISTIC_TOP_${TOP_N}.md" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload realistic replay
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: realistic-replay-${{ github.run_number }}
+          path: |
+            reports/REALISTIC_TOP_*.json
+            reports/REALISTIC_TOP_*.md
+            reports/REALISTIC_TOP_*_REJECTED.json
+            reports/REALISTIC_TOP_*_REJECTED.md
+            reports/realistic_candidates/**
+          if-no-files-found: warn
+          retention-days: 90
+
+  walk_forward:
+    name: Certified full-catalog OOS walk-forward
+    if: ${{ inputs.run_walk_forward }}
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: mycroft440/b3-strategy-lab
+          ref: ${{ needs.prepare.outputs.upstream_sha }}
+          path: upstream
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: upstream/requirements-test.txt
+
+      - run: python -m pip install -r upstream/requirements-test.txt
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: prepared-data-${{ github.run_id }}
+          path: upstream/data
+
+      - name: Require fully certified market inputs for OOS claims
+        working-directory: upstream
+        run: |
+          set -euo pipefail
+          python scripts/audit_realistic_backtest_inputs.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          audit = json.loads(Path("reports/realistic_input_audit.json").read_text())
+          if audit.get("ready_for_certified_market_inputs") is not True:
+              raise SystemExit(
+                  "certified market inputs are not ready: "
+                  + repr(audit.get("certified_market_input_blockers"))
+              )
+          PY
+
+      - name: Run causal full-catalog OOS research
+        working-directory: upstream
+        env:
+          START_DATE: ${{ inputs.start }}
+          END_DATE: ${{ needs.prepare.outputs.resolved_end }}
+          FIRST_TEST_YEAR: ${{ inputs.first_test_year }}
+          LAST_TEST_YEAR: ${{ inputs.last_test_year }}
+          INITIAL_CASH: ${{ inputs.initial_cash }}
+          OBJECTIVE: ${{ inputs.objective }}
+        run: |
+          set -euo pipefail
+          CMD=(
+            python scripts/walk_forward_certified.py
+            --require-full-scope
+            --all-strategies
+            --economic-gap-adjustment
+            --continuous-oos-account
+            --max-causal-adv-participation 0.01
+            --start "$START_DATE"
+            --end "$END_DATE"
+            --first-test-year "$FIRST_TEST_YEAR"
+            --initial-cash "$INITIAL_CASH"
+            --objective "$OBJECTIVE"
+            --output reports/FULL_CATALOG_WALK_FORWARD.csv
+            --summary-output reports/FULL_CATALOG_WALK_FORWARD.json
+            --continuous-curve-output reports/FULL_CATALOG_WALK_FORWARD_CONTINUOUS_CURVE.csv
+          )
+          if [ -n "$LAST_TEST_YEAR" ]; then CMD+=(--last-test-year "$LAST_TEST_YEAR"); fi
+          "${CMD[@]}"
+
+      - name: Enforce causal OOS semantics
+        working-directory: upstream
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          summary = json.loads(Path("reports/FULL_CATALOG_WALK_FORWARD.json").read_text())
+          required = {
+              "full_multiple_testing_scope": True,
+              "selection_uses_test_data": False,
+              "survivorship_safe_universe": True,
+              "continuous_oos_account": True,
+              "test_accounts_are_independent": False,
+              "continuous_tax_account_claim": True,
+              "continuous_oos_account_required": True,
+              "execution_capacity_gate_required": True,
+              "research_claim_allowed": True,
+              "ex_ante_selection_claim_allowed": False,
+              "formal_multiple_testing_significance_correction": False,
+              "cash_events_complete": True,
+              "cash_certification_verified": True,
+              "causal_opening_liquidity_required": True,
+              "economic_gap_adjustment_required": True,
+          }
+          failures = [
+              f"{key}={summary.get(key)!r}"
+              for key, expected in required.items()
+              if summary.get(key) is not expected
+          ]
+          if abs(float(summary.get("max_causal_adv_participation", -1.0)) - 0.01) > 1e-12:
+              failures.append("max_causal_adv_participation=" + repr(summary.get("max_causal_adv_participation")))
+          if failures:
+              raise SystemExit("walk-forward certification failed: " + ", ".join(failures))
+          curve = Path("reports/FULL_CATALOG_WALK_FORWARD_CONTINUOUS_CURVE.csv")
+          if not curve.exists() or curve.stat().st_size == 0:
+              raise SystemExit("continuous OOS curve is missing or empty")
+          print(json.dumps(summary, indent=2, ensure_ascii=False))
+          PY
+
+      - name: Upload certified OOS research
+        uses: actions/upload-artifact@v4
+        with:
+          name: certified-oos-${{ github.run_number }}
+          path: |
+            upstream/reports/FULL_CATALOG_WALK_FORWARD.csv
+            upstream/reports/FULL_CATALOG_WALK_FORWARD.json
+            upstream/reports/FULL_CATALOG_WALK_FORWARD_CONTINUOUS_CURVE.csv
+            upstream/reports/realistic_input_audit.json
+          if-no-files-found: error
+          retention-days: 90
+
+  final_status:
+    name: Final integrity status
+    if: ${{ always() }}
+    needs: [prepare, merge, realistic_replay, walk_forward]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build status
+        env:
+          UPSTREAM_SHA: ${{ needs.prepare.outputs.upstream_sha }}
+          RESOLVED_END: ${{ needs.prepare.outputs.resolved_end }}
+          STRATEGY_COUNT: ${{ needs.prepare.outputs.strategy_count }}
+          MANAGEMENT_COUNT: ${{ needs.prepare.outputs.management_count }}
+          COMBINATION_COUNT: ${{ needs.prepare.outputs.combination_count }}
+          PREPARE_RESULT: ${{ needs.prepare.result }}
+          MERGE_RESULT: ${{ needs.merge.result }}
+          REALISTIC_RESULT: ${{ needs.realistic_replay.result }}
+          WALK_FORWARD_RESULT: ${{ needs.walk_forward.result }}
+          WALK_FORWARD_REQUIRED: ${{ inputs.run_walk_forward }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          required_walk_forward = os.environ["WALK_FORWARD_REQUIRED"].lower() == "true"
+          research_ok = os.environ["MERGE_RESULT"] == "success"
+          realistic_ok = os.environ["REALISTIC_RESULT"] == "success"
+          oos_ok = os.environ["WALK_FORWARD_RESULT"] == "success" if required_walk_forward else None
+          passed = research_ok and realistic_ok and (oos_ok is True if required_walk_forward else True)
+          payload = {
+              "schema_version": 1,
+              "passed": passed,
+              "upstream_sha": os.environ.get("UPSTREAM_SHA") or None,
+              "resolved_end": os.environ.get("RESOLVED_END") or None,
+              "strategy_count": int(os.environ.get("STRATEGY_COUNT") or 0),
+              "management_count": int(os.environ.get("MANAGEMENT_COUNT") or 0),
+              "combination_count": int(os.environ.get("COMBINATION_COUNT") or 0),
+              "jobs": {
+                  "prepare": os.environ["PREPARE_RESULT"],
+                  "merge": os.environ["MERGE_RESULT"],
+                  "realistic_replay": os.environ["REALISTIC_RESULT"],
+                  "walk_forward": os.environ["WALK_FORWARD_RESULT"],
+              },
+              "exhaustive_research_matrix_complete": research_ok,
+              "realistic_finalist_replay_complete": realistic_ok,
+              "certified_oos_required": required_walk_forward,
+              "certified_oos_complete": oos_ok,
+          }
+          Path("FINAL_STATUS.json").write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n")
+          print(json.dumps(payload, indent=2, ensure_ascii=False))
+          PY
+          cat FINAL_STATUS.json >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: final-status-${{ github.run_number }}
+          path: FINAL_STATUS.json
+          retention-days: 90
+
+      - name: Fail closed if a required integrity stage failed
+        env:
+          MERGE_RESULT: ${{ needs.merge.result }}
+          REALISTIC_RESULT: ${{ needs.realistic_replay.result }}
+          WALK_FORWARD_RESULT: ${{ needs.walk_forward.result }}
+          WALK_FORWARD_REQUIRED: ${{ inputs.run_walk_forward }}
+        run: |
+          set -euo pipefail
+          test "$MERGE_RESULT" = "success"
+          test "$REALISTIC_RESULT" = "success"
+          if [ "$WALK_FORWARD_REQUIRED" = "true" ]; then
+            test "$WALK_FORWARD_RESULT" = "success"
+          fi
