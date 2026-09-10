@@ -1,0 +1,34 @@
+{
+  "contract": {
+    "step_1": "each BUY/SELL strategy marks the 40 tickers as uptrend state=1 or not state=0 at the monthly decision close",
+    "step_2": "only state=1 tickers are passed to the portfolio manager",
+    "step_3": "inside that subset, the B3 Strategy Lab champion filters ROC252/126/63 > 0, ROC22 > 0 and close > SMA200",
+    "step_4": "the manager ranks the survivors by ROC22 / annualized sample volatility18 and buys Top-1",
+    "execution": "decision at monthly close; trade at next common session open",
+    "between_rebalances": "hold the selected asset until the next monthly decision",
+    "no_candidate": "stay 100% in cash"
+  },
+  "strategies_tested": 40,
+  "tickers": 40,
+  "initial_cash_brl": 1000.0,
+  "commission_bps": 3.2,
+  "slippage_bps": 10.0,
+  "start": "2017-02-24",
+  "end": "2026-09-10",
+  "known_scale_repairs_applied": 1,
+  "management_snapshots_reused": 115,
+  "best": {
+    "rank": 1,
+    "signal_strategy": "macd_5_35_5",
+    "family": "tendencia",
+    "initial_cash_brl": 1000.0,
+    "final_equity_brl": 4265.383544168422,
+    "final_profit_brl": 3265.3835441684223,
+    "final_return_pct": 326.53835441684225,
+    "max_drawdown_pct": -52.99490956329558,
+    "mean_full_calendar_year_return_pct": 36.135316895092544,
+    "losing_full_calendar_years": "2021;2022;2024",
+    "rebalance_count": 115,
+    "order_count": 210
+  }
+}
