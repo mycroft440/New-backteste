@@ -26,30 +26,37 @@ STAGING_DIR = Path(".quotes_staging")
 def download_adjusted(ticker: str) -> pd.DataFrame:
     symbol = f"{ticker}.SA"
     end = (date.today() + timedelta(days=1)).isoformat()
-    last_error: Exception | None = None
+    errors: list[str] = []
 
-    for attempt in range(1, 5):
-        try:
-            df = yf.Ticker(symbol).history(
-                start=START,
-                end=end,
-                interval="1d",
-                auto_adjust=True,
-                actions=False,
-                repair=True,
-                keepna=False,
-                timeout=30,
-                raise_errors=True,
-            )
-            if df.empty:
-                raise RuntimeError("histórico vazio")
-            return df
-        except Exception as exc:  # noqa: BLE001
-            last_error = exc
-            if attempt < 4:
-                time.sleep(attempt * 5)
+    # Primeiro usa o reparador do yfinance. Em séries em que o reparador falha por
+    # dados auxiliares problemáticos (por exemplo, volume NaN histórico), recua
+    # para a série Yahoo auto-ajustada sem o reparador experimental. Em ambos os
+    # casos o resultado ainda passa integralmente pelo nosso gate estrutural.
+    for repair in (True, False):
+        for attempt in range(1, 3):
+            try:
+                df = yf.Ticker(symbol).history(
+                    start=START,
+                    end=end,
+                    interval="1d",
+                    auto_adjust=True,
+                    actions=False,
+                    repair=repair,
+                    keepna=False,
+                    timeout=30,
+                    raise_errors=True,
+                )
+                if df.empty:
+                    raise RuntimeError("histórico vazio")
+                if not repair:
+                    print(f"  {ticker}: fallback repair=False", flush=True)
+                return df
+            except Exception as exc:  # noqa: BLE001
+                errors.append(f"repair={repair} attempt={attempt}: {exc}")
+                if attempt < 2:
+                    time.sleep(attempt * 5)
 
-    raise RuntimeError(f"{ticker}: falha ao baixar dados: {last_error}")
+    raise RuntimeError(f"{ticker}: falha ao baixar dados: {' | '.join(errors)}")
 
 
 def normalize_and_validate(ticker: str, raw: pd.DataFrame) -> tuple[pd.DataFrame, int]:
@@ -74,6 +81,7 @@ def normalize_and_validate(ticker: str, raw: pd.DataFrame) -> tuple[pd.DataFrame
     df.index.name = "date"
     df = df[~df.index.duplicated(keep="last")].sort_index()
 
+    df = df.replace([float("inf"), float("-inf")], pd.NA)
     df = df.dropna(subset=["open", "high", "low", "close", "volume"])
     for col in ["open", "high", "low", "close"]:
         df[col] = pd.to_numeric(df[col], errors="raise").astype(float)
