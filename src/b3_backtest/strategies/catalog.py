@@ -6,6 +6,10 @@ import pandas as pd
 
 from .core import run_engine, signal_events
 
+SOURCE_REPOSITORY = "mycroft440/b3-strategy-lab"
+SOURCE_COMMIT = "8cb3a9e906dfae69e74d26d8cd3a9c76c380d55d"
+SOURCE_MODULE = "b3_strategy_lab/additional_strategies.py"
+
 
 @dataclass(frozen=True)
 class StrategySpec:
