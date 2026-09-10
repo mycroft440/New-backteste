@@ -1,0 +1,8 @@
+[
+  {
+    "ticker": "UGPA3",
+    "boundary": "2021-06-28",
+    "pre_boundary_price_factor": 2.0,
+    "reason": "Yahoo pre-2021-06-28 history is on a half-price scale; no split occurred at boundary"
+  }
+]

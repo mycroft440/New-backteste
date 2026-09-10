@@ -1,14 +1,22 @@
 {
   "initial_cash_brl": 1000.0,
   "capital_model": "R$ 1.000 em cada backtest independente estrategia x ticker; sem compartilhamento de capital entre ativos",
-  "execution": "sinal gerado no fechamento do candle; execucao no open do proximo candle negociavel",
+  "comparison_window": {
+    "start": "2017-02-24",
+    "end": "2026-09-10",
+    "rule": "maior primeira data e menor ultima data entre as 40 series, apos reparos de escala documentados"
+  },
+  "indicator_warmup": "indicadores usam o historico anterior ao inicio comum; capital e posicao so passam a existir na janela de teste",
+  "execution": "sinal conhecido no fechamento; execucao no open do proximo candle negociavel",
   "position_sizing": "maximo numero inteiro de acoes que o caixa permite; sobra permanece em caixa",
   "portfolio_management": false,
   "commission_bps": 0.0,
   "slippage_bps": 0.0,
   "open_position_at_end": "marcada a mercado no ultimo close, sem venda forcada",
-  "strategy_summary": "media simples dos 40 backtests independentes; nao representa uma carteira de R$ 1.000 dividida entre 40 ativos",
-  "losing_year_rule": "ano entra no resumo apenas quando possui pelo menos 20 tickers com observacao; prejuizo quando a media dos retornos anuais desses backtests e negativa",
+  "strategy_summary": "media simples dos 40 backtests independentes de R$ 1.000; nao representa uma carteira dividida entre 40 ativos",
+  "annual_summary": "somente anos-calendario completos: 2018 a 2025; todos exigem 40 tickers",
+  "losing_year_rule": "ano completo em que a media simples dos 40 retornos anuais e negativa",
   "max_gain_loss_rule": "maior ganho e maior perda percentuais entre trades encerrados nos 40 backtests independentes",
-  "dividends_jcp": "nao adicionados pelo motor; usa somente os OHLC existentes em data/quotes"
+  "dividends_jcp": "nao adicionados pelo motor; reparos documentados alteram somente escala de preco/volume, sem retorno de proventos",
+  "data_quality_gate": "falha se qualquer ticker mantiver salto open/close >=2x ou <=0.5x contra o fechamento anterior dentro da janela comum"
 }
