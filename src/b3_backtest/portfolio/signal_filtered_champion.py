@@ -5,12 +5,13 @@ from typing import Mapping
 
 import pandas as pd
 
+from b3_backtest.indicators.b3lab_champion import evaluate_universe
 from b3_backtest.strategies.catalog import run_strategy
 from .b3lab_champion import (
     CHAMPION_MANAGEMENT_STRATEGY_NAME,
     SOURCE_COST_BPS,
     SOURCE_SLIPPAGE_BPS,
-    select_b3lab_champion_from_uptrend,
+    _rank,
 )
 from .champion_engine import _annual_returns, _final_close_liquidation
 from .engine import ManagedPortfolioResult, _execute_target, _prepare_frames
@@ -27,6 +28,7 @@ def simulate_signal_filtered_champion(
     start: str | pd.Timestamp | None = None,
     end: str | pd.Timestamp | None = None,
     signal_states: Mapping[str, list[int]] | None = None,
+    management_cache: dict[pd.Timestamp, pd.DataFrame] | None = None,
 ) -> ManagedPortfolioResult:
     """Run the champion manager only inside the signal strategy uptrend set.
 
@@ -38,6 +40,11 @@ def simulate_signal_filtered_champion(
 
     The selected asset is held until the next scheduled rebalance. The signal is
     intentionally sampled only on rebalance dates; there are no intra-month exits.
+
+    ``management_cache`` may be shared across runs that use the same market frames.
+    It stores only the signal-independent champion indicator snapshot for each
+    decision date. Each signal strategy still applies its own uptrend gate and its
+    own ranking result, so caching cannot change portfolio decisions.
     """
     if not math.isfinite(initial_cash) or initial_cash <= 0:
         raise ValueError("initial_cash must be positive and finite")
@@ -62,6 +69,7 @@ def simulate_signal_filtered_champion(
         ticker: {pd.Timestamp(value): index for index, value in enumerate(frame["date"])}
         for ticker, frame in prepared.items()
     }
+    cache = management_cache if management_cache is not None else {}
 
     cash = float(initial_cash)
     holdings = {ticker: 0 for ticker in prepared}
@@ -79,7 +87,17 @@ def simulate_signal_filtered_champion(
             for ticker in prepared
             if states[ticker][date_index[ticker][decision_date]] == 1
         }
-        selection = select_b3lab_champion_from_uptrend(prepared, decision_date, uptrend)
+
+        base = cache.get(decision_date)
+        if base is None:
+            base = evaluate_universe(prepared, decision_date)
+            cache[decision_date] = base.copy(deep=True)
+        candidates = base.copy(deep=True)
+        candidates["indicator_uptrend"] = candidates["ticker"].astype(str).isin(uptrend)
+        candidates["management_eligible"] = (
+            candidates["indicator_uptrend"] & candidates["eligible_for_ranking"].fillna(False)
+        )
+        selection = _rank(candidates, "management_eligible")
         candidates = selection.candidates.copy()
         candidates.insert(1, "execution_date", execution_date)
         candidates.insert(2, "signal_strategy", signal_strategy)
