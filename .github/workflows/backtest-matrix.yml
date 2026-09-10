@@ -8,6 +8,7 @@ on:
       - 'src/b3_backtest/backtest/**'
       - 'src/b3_backtest/strategies/**'
       - 'scripts/run_backtest_matrix.py'
+      - 'scripts/audit_quote_discontinuities.py'
       - 'tests/test_backtest_engine.py'
       - 'data/quotes/**'
       - '.github/workflows/backtest-matrix.yml'
@@ -33,6 +34,8 @@ jobs:
         env:
           PYTHONPATH: src
         run: pytest -q tests/test_backtest_engine.py tests/test_signal_strategies.py
+      - name: Audit quote discontinuities
+        run: python scripts/audit_quote_discontinuities.py
       - name: Run 40 x 40 backtest matrix
         env:
           PYTHONPATH: src
@@ -43,6 +46,7 @@ jobs:
           test -f results/backtests/strategy_ticker_results.csv
           test -f results/backtests/strategy_annual_results.csv
           test -f results/backtests/methodology.json
+          test -f results/backtests/quote_anomalies.csv
           test "$(($(wc -l < results/backtests/strategy_summary.csv) - 1))" -eq 40
           test "$(($(wc -l < results/backtests/strategy_ticker_results.csv) - 1))" -eq 1600
       - name: Commit results
