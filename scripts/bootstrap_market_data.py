@@ -23,15 +23,21 @@ OUTPUT_DIR = Path("data/quotes")
 STAGING_DIR = Path(".quotes_staging")
 
 
-def download_adjusted(ticker: str) -> pd.DataFrame:
+def download_split_adjusted_price_only(ticker: str) -> pd.DataFrame:
+    """Baixa OHLCV sem retorno de dividendos/JCP.
+
+    Yahoo entrega Open/High/Low/Close históricos já ajustados por stock splits.
+    O ajuste adicional por dividendos/proventos fica em ``Adj Close``. Portanto,
+    usamos ``auto_adjust=False`` e descartamos completamente ``Adj Close``.
+
+    ``repair=True`` é tentado primeiro porque o yfinance consegue corrigir vários
+    defeitos de preços/volume e splits ausentes. Mesmo nesse modo, dividendos/JCP
+    não entram no CSV porque nunca usamos ``Adj Close`` nem colunas de eventos.
+    """
     symbol = f"{ticker}.SA"
     end = (date.today() + timedelta(days=1)).isoformat()
     errors: list[str] = []
 
-    # Primeiro usa o reparador do yfinance. Em séries em que o reparador falha por
-    # dados auxiliares problemáticos (por exemplo, volume NaN histórico), recua
-    # para a série Yahoo auto-ajustada sem o reparador experimental. Em ambos os
-    # casos o resultado ainda passa integralmente pelo nosso gate estrutural.
     for repair in (True, False):
         for attempt in range(1, 3):
             try:
@@ -39,7 +45,7 @@ def download_adjusted(ticker: str) -> pd.DataFrame:
                     start=START,
                     end=end,
                     interval="1d",
-                    auto_adjust=True,
+                    auto_adjust=False,
                     actions=False,
                     repair=repair,
                     keepna=False,
@@ -60,6 +66,7 @@ def download_adjusted(ticker: str) -> pd.DataFrame:
 
 
 def normalize_and_validate(ticker: str, raw: pd.DataFrame) -> tuple[pd.DataFrame, int]:
+    # Deliberadamente NÃO inclui "Adj Close", Dividends ou qualquer distribuição.
     required = ["Open", "High", "Low", "Close", "Volume"]
     missing = [col for col in required if col not in raw.columns]
     if missing:
@@ -95,9 +102,8 @@ def normalize_and_validate(ticker: str, raw: pd.DataFrame) -> tuple[pd.DataFrame
     if (df["volume"] < 0).any():
         raise RuntimeError(f"{ticker}: volume negativo")
 
-    # Algumas séries Yahoo ajustadas contêm raros candles históricos em que High/Low
-    # não englobam Open/Close. Mantemos Open/Close da fonte e canonizamos somente
-    # os extremos, de forma determinística, antes do gate final.
+    # Alguns candles históricos da fonte têm High/Low que não englobam Open/Close.
+    # Mantemos Open/Close e canonizamos apenas os extremos antes do gate final.
     original_high = df["high"].copy()
     original_low = df["low"].copy()
     extrema = df[["open", "high", "low", "close"]]
@@ -136,7 +142,8 @@ def main() -> int:
     total_repairs = 0
     for pos, ticker in enumerate(TICKERS, start=1):
         print(f"[{pos:02d}/40] {ticker}", flush=True)
-        df, repaired_rows = normalize_and_validate(ticker, download_adjusted(ticker))
+        raw = download_split_adjusted_price_only(ticker)
+        df, repaired_rows = normalize_and_validate(ticker, raw)
         total_repairs += repaired_rows
         target = staging_quotes / f"{ticker}.csv"
         df.to_csv(target, date_format="%Y-%m-%d", lineterminator="\n")
@@ -155,10 +162,11 @@ def main() -> int:
     shutil.move(str(staging_quotes), str(OUTPUT_DIR))
     shutil.rmtree(STAGING_DIR, ignore_errors=True)
 
-    print("\nVALIDATED ADJUSTED QUOTES")
+    print("\nVALIDATED SPLIT-ADJUSTED PRICE-ONLY QUOTES")
     for line in summaries:
         print(line)
     print(f"\nCanonicalized OHLC rows: {total_repairs}")
+    print("Dividend/JCP adjustment: EXCLUDED")
     print(f"OK: {len(files)} séries em {OUTPUT_DIR}")
     return 0
 
