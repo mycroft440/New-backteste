@@ -56,20 +56,28 @@ def simulate_from_positions(
     if commission_bps < 0 or slippage_bps < 0:
         raise ValueError("cost parameters must be non-negative")
 
+    # Convert the hot-path inputs once. This preserves the exact execution rules
+    # while avoiding millions of pandas row-object allocations in matrix runs.
+    date_values = dates.tolist()
+    open_values = frame["open"].to_numpy(dtype=float, copy=False)
+    close_values = frame["close"].to_numpy(dtype=float, copy=False)
+
     cash = float(initial_cash)
     shares = 0
     entry_price: float | None = None
     entry_date: pd.Timestamp | None = None
     entry_cost_total = 0.0
-    trade_rows: list[dict[str, object]] = []
-    equity_rows: list[dict[str, object]] = []
+    trade_rows: list[tuple[object, ...]] = []
+    equity_rows: list[tuple[object, ...]] = []
 
     commission_rate = commission_bps / 10_000.0
     slippage_rate = slippage_bps / 10_000.0
 
-    for index in range(len(frame)):
-        open_price = float(frame.iloc[index]["open"])
-        close_price = float(frame.iloc[index]["close"])
+    for index, (date, open_price, close_price) in enumerate(
+        zip(date_values, open_values, close_values, strict=True)
+    ):
+        open_price = float(open_price)
+        close_price = float(close_price)
         target = positions[index - 1] if index > 0 else 0
 
         if target == 1 and shares == 0:
@@ -83,7 +91,7 @@ def simulate_from_positions(
                 cash -= total
                 shares = quantity
                 entry_price = buy_price
-                entry_date = dates.iloc[index]
+                entry_date = date
                 entry_cost_total = total
 
         elif target == 0 and shares > 0:
@@ -95,15 +103,15 @@ def simulate_from_positions(
             pnl = proceeds - entry_cost_total
             return_pct = pnl / entry_cost_total * 100.0
             trade_rows.append(
-                {
-                    "entry_date": entry_date,
-                    "exit_date": dates.iloc[index],
-                    "shares": shares,
-                    "entry_price": entry_price,
-                    "exit_price": sell_price,
-                    "pnl_brl": pnl,
-                    "return_pct": return_pct,
-                }
+                (
+                    entry_date,
+                    date,
+                    shares,
+                    entry_price,
+                    sell_price,
+                    pnl,
+                    return_pct,
+                )
             )
             shares = 0
             entry_price = None
@@ -111,17 +119,12 @@ def simulate_from_positions(
             entry_cost_total = 0.0
 
         equity = cash + shares * close_price
-        equity_rows.append(
-            {
-                "date": dates.iloc[index],
-                "cash": cash,
-                "shares": shares,
-                "close": close_price,
-                "equity": equity,
-            }
-        )
+        equity_rows.append((date, cash, shares, close_price, equity))
 
-    equity_curve = pd.DataFrame(equity_rows)
+    equity_curve = pd.DataFrame(
+        equity_rows,
+        columns=["date", "cash", "shares", "close", "equity"],
+    )
     final_equity = float(equity_curve.iloc[-1]["equity"])
     final_profit = final_equity - initial_cash
     final_return_pct = final_profit / initial_cash * 100.0
@@ -129,19 +132,29 @@ def simulate_from_positions(
     annual = equity_curve[["date", "equity"]].copy()
     annual["year"] = annual["date"].dt.year
     year_end = annual.groupby("year", sort=True).tail(1).set_index("year")["equity"]
-    years = list(year_end.index)
-    annual_rows: list[dict[str, object]] = []
+    annual_rows: list[tuple[object, ...]] = []
     previous_equity = float(initial_cash)
-    for year in years:
-        ending_equity = float(year_end.loc[year])
+    for year, ending_equity_raw in year_end.items():
+        ending_equity = float(ending_equity_raw)
         return_pct = (ending_equity / previous_equity - 1.0) * 100.0
-        annual_rows.append({"year": int(year), "end_equity": ending_equity, "return_pct": return_pct})
+        annual_rows.append((int(year), ending_equity, return_pct))
         previous_equity = ending_equity
-    annual_returns = pd.DataFrame(annual_rows, columns=["year", "end_equity", "return_pct"])
+    annual_returns = pd.DataFrame(
+        annual_rows,
+        columns=["year", "end_equity", "return_pct"],
+    )
 
     trades = pd.DataFrame(
         trade_rows,
-        columns=["entry_date", "exit_date", "shares", "entry_price", "exit_price", "pnl_brl", "return_pct"],
+        columns=[
+            "entry_date",
+            "exit_date",
+            "shares",
+            "entry_price",
+            "exit_price",
+            "pnl_brl",
+            "return_pct",
+        ],
     )
     max_gain = float(trades["return_pct"].max()) if not trades.empty else None
     max_loss = float(trades["return_pct"].min()) if not trades.empty else None
