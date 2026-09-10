@@ -1,0 +1,110 @@
+name: Bootstrap independent B3 market data
+
+on:
+  workflow_dispatch:
+    inputs:
+      start_year:
+        description: Primeiro ano do backtest; seleção usa o ano anterior
+        required: true
+        default: "2018"
+        type: string
+      end_year:
+        description: Último ano de dados; vazio usa o ano corrente
+        required: false
+        default: ""
+        type: string
+      top:
+        description: Quantidade de ações
+        required: true
+        default: "40"
+        type: string
+  push:
+    branches: [main]
+    paths:
+      - scripts/bootstrap_market_data.py
+      - .github/workflows/bootstrap-market-data.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bootstrap-independent-b3-market-data
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Resolve inputs
+        id: cfg
+        shell: bash
+        run: |
+          set -euo pipefail
+          START_YEAR="${{ inputs.start_year }}"
+          END_YEAR="${{ inputs.end_year }}"
+          TOP="${{ inputs.top }}"
+          if [ -z "$START_YEAR" ]; then START_YEAR=2018; fi
+          if [ -z "$END_YEAR" ]; then END_YEAR="$(date -u +%Y)"; fi
+          if [ -z "$TOP" ]; then TOP=40; fi
+          echo "start_year=$START_YEAR" >> "$GITHUB_OUTPUT"
+          echo "end_year=$END_YEAR" >> "$GITHUB_OUTPUT"
+          echo "top=$TOP" >> "$GITHUB_OUTPUT"
+
+      - name: Cache official annual archives
+        uses: actions/cache@v4
+        with:
+          path: .cache/b3_cotahist
+          key: b3-cotahist-${{ steps.cfg.outputs.start_year }}-${{ steps.cfg.outputs.end_year }}-v1
+          restore-keys: |
+            b3-cotahist-${{ steps.cfg.outputs.start_year }}-
+            b3-cotahist-
+
+      - name: Build and validate independent raw dataset
+        run: |
+          set -euo pipefail
+          python scripts/bootstrap_market_data.py \
+            --start-year "${{ steps.cfg.outputs.start_year }}" \
+            --end-year "${{ steps.cfg.outputs.end_year }}" \
+            --top "${{ steps.cfg.outputs.top }}" \
+            --output-dir data/market
+
+      - name: Show selected universe and validation
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          manifest = json.loads(Path("data/market/universe_40.json").read_text())
+          validation = json.loads(Path("data/market/validation.json").read_text())
+          print("## Independent B3 dataset")
+          print()
+          print(f"Selected: **{len(manifest['selection']['tickers'])}** stocks")
+          print(f"Selection year: **{manifest['selection']['selection_year']}**")
+          print(f"Raw OHLCV valid: **{validation['raw_ohlcv_valid']}**")
+          print()
+          print("`" + ", ".join(manifest['selection']['tickers']) + "`")
+          print()
+          print("Raw COTAHIST is deliberately not declared ready for full strategy testing until independent split/ticker-transition handling is added.")
+          PY
+
+      - name: Commit dataset to New-backteste
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/market
+          if git diff --cached --quiet; then
+            echo "No dataset changes to commit."
+            exit 0
+          fi
+          git commit -m "data: materialize independent B3 40-stock raw snapshot"
+          git push origin HEAD:main
