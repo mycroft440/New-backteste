@@ -13,6 +13,9 @@ on:
 permissions:
   contents: read
 
+env:
+  PYTHONPATH: src
+
 jobs:
   test:
     runs-on: ubuntu-latest
