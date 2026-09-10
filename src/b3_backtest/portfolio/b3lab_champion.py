@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Mapping
+from typing import Iterable, Mapping
 
 import pandas as pd
 
@@ -33,23 +33,13 @@ class ChampionSelection:
     candidates: pd.DataFrame
 
 
-def select_b3lab_champion(
-    frames: Mapping[str, pd.DataFrame],
-    decision_date: pd.Timestamp | str,
-) -> ChampionSelection:
-    """Select the source-faithful Top-1 winner at a decision close.
-
-    The indicator itself supplies both eligibility and ranking. This winning B3
-    Strategy Lab configuration does not depend on one of the binary MACD/RSI/etc.
-    strategy states used by the legacy manager in this repository.
-    """
-    decision_date = pd.Timestamp(decision_date)
-    result = evaluate_universe(frames, decision_date)
+def _rank(result: pd.DataFrame, eligible_column: str) -> ChampionSelection:
+    result = result.copy()
     result["rank"] = pd.array([None] * len(result), dtype="Int64")
     result["selected"] = False
     result["target_weight"] = 0.0
 
-    eligible_indices = result.index[result["eligible_for_ranking"]].tolist()
+    eligible_indices = result.index[result[eligible_column].fillna(False)].tolist()
     eligible_indices.sort(
         key=lambda index: (-float(result.at[index, "score"]), str(result.at[index, "ticker"]))
     )
@@ -63,7 +53,42 @@ def select_b3lab_champion(
         result.at[winner, "selected"] = True
         result.at[winner, "target_weight"] = 1.0
 
+    decision_date = pd.Timestamp(result["decision_date"].iloc[0]) if "decision_date" in result.columns and not result.empty else pd.NaT
     return ChampionSelection(decision_date, selected_ticker, result)
+
+
+def select_b3lab_champion(
+    frames: Mapping[str, pd.DataFrame],
+    decision_date: pd.Timestamp | str,
+) -> ChampionSelection:
+    """Select the source-faithful Top-1 winner at a decision close."""
+    decision_date = pd.Timestamp(decision_date)
+    result = evaluate_universe(frames, decision_date)
+    selection = _rank(result, "eligible_for_ranking")
+    return ChampionSelection(decision_date, selection.selected_ticker, selection.candidates)
+
+
+def select_b3lab_champion_from_uptrend(
+    frames: Mapping[str, pd.DataFrame],
+    decision_date: pd.Timestamp | str,
+    uptrend_tickers: Iterable[str],
+) -> ChampionSelection:
+    """Rank only tickers that the external BUY/SELL strategy marks as uptrend.
+
+    Contract:
+    1. The binary strategy is the primary gate. State 0 can never be selected.
+    2. The B3 Strategy Lab champion rules are evaluated only inside that gate.
+    3. Among names passing both layers, the highest champion score is Top-1.
+    """
+    decision_date = pd.Timestamp(decision_date)
+    allowed = {str(ticker) for ticker in uptrend_tickers}
+    result = evaluate_universe(frames, decision_date)
+    result["indicator_uptrend"] = result["ticker"].astype(str).isin(allowed)
+    result["management_eligible"] = (
+        result["indicator_uptrend"] & result["eligible_for_ranking"].fillna(False)
+    )
+    selection = _rank(result, "management_eligible")
+    return ChampionSelection(decision_date, selection.selected_ticker, selection.candidates)
 
 
 def champion_source_metadata() -> dict[str, object]:
