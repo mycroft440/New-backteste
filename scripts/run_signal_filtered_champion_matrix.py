@@ -57,6 +57,9 @@ def main() -> int:
 
     ranking_rows: list[dict[str, object]] = []
     rebalance_frames: list[pd.DataFrame] = []
+    # Signal-independent B3 Lab indicator snapshots are identical for all 40
+    # strategy gates, so compute each monthly snapshot once and reuse it.
+    management_cache: dict[pd.Timestamp, pd.DataFrame] = {}
 
     specs = list_strategies()
     if len(specs) != 40:
@@ -71,6 +74,7 @@ def main() -> int:
             slippage_bps=args.slippage_bps,
             start=start,
             end=end,
+            management_cache=management_cache,
         )
 
         full_years = result.annual_returns[
@@ -108,8 +112,7 @@ def main() -> int:
                 "order_count": len(result.orders),
             }
         )
-        compact = result.rebalance_summary.copy()
-        rebalance_frames.append(compact)
+        rebalance_frames.append(result.rebalance_summary.copy())
         print(f"{spec.name}: {result.final_return_pct:.4f}%", flush=True)
 
     ranking = pd.DataFrame(ranking_rows).sort_values(
@@ -142,6 +145,7 @@ def main() -> int:
         "start": start.date().isoformat(),
         "end": end.date().isoformat(),
         "known_scale_repairs_applied": repair_count,
+        "management_snapshots_reused": len(management_cache),
         "best": best,
     }
     (out / "summary.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False, default=str) + "\n")
