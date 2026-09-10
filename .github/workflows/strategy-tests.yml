@@ -1,0 +1,38 @@
+name: Validate signal-only strategies
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "scripts/run_signal_strategy.py"
+      - ".github/workflows/strategy-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install strategy dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install "pandas>=2.2,<3"
+
+      - name: Run signal strategy tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Smoke-test BUY/SELL CLI
+        run: |
+          python scripts/run_signal_strategy.py --ticker PETR4 --strategy sma_cross_20_100 --output /tmp/petr4-signals.csv
+          test -s /tmp/petr4-signals.csv
