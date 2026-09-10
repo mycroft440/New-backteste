@@ -1,0 +1,52 @@
+name: Contract CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout New-backteste
+        uses: actions/checkout@v4
+
+      - name: Checkout current b3-strategy-lab
+        uses: actions/checkout@v4
+        with:
+          repository: mycroft440/b3-strategy-lab
+          ref: main
+          path: upstream
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: upstream/requirements-test.txt
+
+      - name: Install dependencies
+        run: python -m pip install -r upstream/requirements-test.txt
+
+      - name: Compile New-backteste scripts
+        run: |
+          python -m py_compile \
+            scripts/catalog_manifest.py \
+            scripts/resolve_cutoff.py \
+            scripts/verify_matrix.py
+
+      - name: Resolve complete upstream catalog
+        run: |
+          python scripts/catalog_manifest.py \
+            --upstream upstream \
+            --shards 4 \
+            --output /tmp/CATALOG.json
+
+      - name: Verify upstream certified cutoff can be resolved
+        run: python scripts/resolve_cutoff.py --upstream upstream
