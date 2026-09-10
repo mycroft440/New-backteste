@@ -67,9 +67,14 @@ def test_monthly_decision_executes_only_on_next_session_open() -> None:
         signal_states=states,
     )
 
-    first = result.rebalance_summary.iloc[0]
+    selected_decisions = result.rebalance_summary[
+        result.rebalance_summary["selected_ticker"].fillna("").astype(str).str.len() > 0
+    ]
+    assert not selected_decisions.empty
+    first = selected_decisions.iloc[0]
     execution = pd.Timestamp(first["execution_date"])
     assert execution > pd.Timestamp(first["decision_date"])
+
     orders = result.orders[result.orders["reason"] == "monthly_rebalance"]
     assert not orders.empty
     assert pd.Timestamp(orders.iloc[0]["date"]) == execution
