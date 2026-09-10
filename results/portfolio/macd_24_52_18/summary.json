@@ -1,0 +1,46 @@
+{
+  "signal_strategy": "macd_24_52_18",
+  "management_strategy": "top1_momentum_lb126_monthly_signal_filter",
+  "management_source": {
+    "repository": "mycroft440/b3-strategy-lab",
+    "commit": "8cb3a9e906dfae69e74d26d8cd3a9c76c380d55d",
+    "module": "scripts/research_portfolio_allocation_core.py",
+    "source_config": "top1_momentum_lb126_skip0_trend0_vol63_equal_monthly_abs_cap1_adjusted",
+    "adaptation": "signal price uses split-only close; dividends/JCP remain excluded"
+  },
+  "initial_cash_brl": 1000.0,
+  "start": "2017-02-24",
+  "end": "2026-09-10",
+  "final_equity_brl": 4575.928389939998,
+  "final_profit_brl": 3575.928389939998,
+  "final_return_pct": 357.5928389939998,
+  "max_drawdown_pct": -59.527780608504536,
+  "losing_full_calendar_years": [
+    2021,
+    2022,
+    2024
+  ],
+  "mean_full_calendar_year_return_pct": 13.7682612580797,
+  "rebalance_count": 115,
+  "order_count": 219,
+  "commission_bps": 0.0,
+  "slippage_bps": 0.0,
+  "known_scale_repairs_applied": 1,
+  "latest_rebalance": {
+    "decision_date": "2026-08-31 00:00:00",
+    "execution_date": "2026-09-01 00:00:00",
+    "uptrend_tickers": "B3SA3;BBAS3;BRAP4;CPLE3;CSNA3;CYRE3;EGIE3;ENEV3;HYPE3;KLBN11;MGLU3;MULT3;PETR4;RADL3;RAIL3;RENT3;SANB11;SMTO3;SUZB3;TOTS3;UGPA3;VALE3;WEGE3",
+    "eligible_tickers": "CPLE3;ENEV3;PETR4;SMTO3;UGPA3;WEGE3",
+    "selected_ticker": "UGPA3",
+    "selected_momentum_126_pct": 34.38826665990893
+  },
+  "contract": {
+    "indicator_uptrend": "binary long state (1) from selected buy/sell strategy on rebalance close",
+    "ranking": "highest positive 126-session momentum among indicator-uptrend tickers",
+    "selection_count": 1,
+    "rebalance": "monthly at last common trading close",
+    "execution": "next common trading session open",
+    "between_rebalances": "designated ticker obeys daily indicator exit/re-entry without reranking",
+    "no_candidate": "100% cash"
+  }
+}
