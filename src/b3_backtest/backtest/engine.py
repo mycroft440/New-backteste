@@ -37,6 +37,7 @@ def simulate_from_positions(
     initial_cash: float = 1000.0,
     commission_bps: float = 0.0,
     slippage_bps: float = 0.0,
+    initial_target: int = 0,
 ) -> BacktestResult:
     """Execute close-generated 0/1 signals on the next bar open.
 
@@ -44,6 +45,11 @@ def simulate_from_positions(
     ranking, rebalancing or capital sharing between symbols. Buys use the maximum
     whole number of shares affordable with the available cash; any remainder stays
     as cash. A still-open position is marked to the final close, not force-sold.
+
+    ``initial_target`` is the strategy state known from the close immediately before
+    the first bar in ``frame``. It allows indicators to warm up on earlier history
+    while capital still starts exactly on the requested backtest date. No future
+    information is used.
     """
     validate_ohlcv(frame)
     dates = _dates(frame)
@@ -51,13 +57,13 @@ def simulate_from_positions(
         raise ValueError("positions length must equal frame length")
     if any(value not in (0, 1) for value in positions):
         raise ValueError("positions must contain only 0 or 1")
+    if initial_target not in (0, 1):
+        raise ValueError("initial_target must be 0 or 1")
     if not math.isfinite(initial_cash) or initial_cash <= 0:
         raise ValueError("initial_cash must be positive and finite")
     if commission_bps < 0 or slippage_bps < 0:
         raise ValueError("cost parameters must be non-negative")
 
-    # Convert the hot-path inputs once. This preserves the exact execution rules
-    # while avoiding millions of pandas row-object allocations in matrix runs.
     date_values = dates.tolist()
     open_values = frame["open"].to_numpy(dtype=float, copy=False)
     close_values = frame["close"].to_numpy(dtype=float, copy=False)
@@ -78,7 +84,7 @@ def simulate_from_positions(
     ):
         open_price = float(open_price)
         close_price = float(close_price)
-        target = positions[index - 1] if index > 0 else 0
+        target = initial_target if index == 0 else positions[index - 1]
 
         if target == 1 and shares == 0:
             buy_price = open_price * (1.0 + slippage_rate)
