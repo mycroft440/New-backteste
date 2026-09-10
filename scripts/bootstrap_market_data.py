@@ -11,7 +11,7 @@ import yfinance as yf
 # 40 ativos B3 líquidos e com histórico longo/estável.
 TICKERS = [
     "ABEV3", "BBDC4", "BBAS3", "BBSE3", "BPAC11", "BRAP4", "CMIG4", "CSMG3",
-    "CPLE3", "CPFE3", "CSNA3", "CYRE3", "EGIE3", "EMBR3", "ENEV3", "ENGI11",
+    "CPLE3", "CPFE3", "CSNA3", "CYRE3", "EGIE3", "B3SA3", "ENEV3", "ENGI11",
     "EQTL3", "GGBR4", "GOAU4", "HYPE3", "ITSA4", "ITUB4", "KLBN11", "LREN3",
     "MGLU3", "MULT3", "PETR4", "PSSA3", "RADL3", "RAIL3", "RENT3", "SANB11",
     "SBSP3", "SMTO3", "SUZB3", "UGPA3", "USIM5", "VALE3", "WEGE3", "TOTS3",
