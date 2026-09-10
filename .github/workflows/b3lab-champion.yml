@@ -10,6 +10,7 @@ on:
       - 'src/b3_backtest/portfolio/champion_engine.py'
       - 'src/b3_backtest/portfolio/__init__.py'
       - 'scripts/run_b3lab_champion.py'
+      - 'scripts/audit_b3lab_champion.py'
       - 'tests/test_b3lab_champion.py'
       - '.github/workflows/b3lab-champion.yml'
 
@@ -38,6 +39,10 @@ jobs:
         env:
           PYTHONPATH: src
         run: python scripts/run_b3lab_champion.py
+      - name: Independently audit champion outputs
+        env:
+          PYTHONPATH: src
+        run: python scripts/audit_b3lab_champion.py
       - name: Validate materialized champion outputs
         run: |
           test -f results/portfolio/b3lab_champion/summary.json
@@ -46,6 +51,7 @@ jobs:
           test -f results/portfolio/b3lab_champion/orders.csv
           test -f results/portfolio/b3lab_champion/equity_curve.csv
           test -f results/portfolio/b3lab_champion/annual_returns.csv
+          test -f results/portfolio/b3lab_champion/audit.json
           python - <<'PY'
           import json
           import math
@@ -54,6 +60,7 @@ jobs:
 
           root = Path('results/portfolio/b3lab_champion')
           data = json.loads((root / 'summary.json').read_text())
+          audit = json.loads((root / 'audit.json').read_text())
           assert data['management_strategy'] == 'top1_short22_riskadj_rocfilter_w1_1_1_trend200_vol18_posscore'
           assert data['indicator'] == 'roc252_126_63_filter__roc22_over_vol18__sma200'
           assert data['source']['result_commit'] == 'bb2533bacaadecbef102869a0fe89407d2eddf22'
@@ -63,6 +70,12 @@ jobs:
           assert math.isfinite(data['final_equity_brl']) and data['final_equity_brl'] > 0
           assert math.isfinite(data['final_return_pct'])
           assert math.isfinite(data['max_drawdown_pct'])
+          assert audit['status'] == 'PASS'
+          assert audit['tickers'] == 40
+          assert audit['decision_checks'] == data['rebalance_count']
+          assert audit['orders_checked'] == data['order_count']
+          assert math.isclose(audit['final_equity_brl'], data['final_equity_brl'], rel_tol=1e-12, abs_tol=1e-9)
+          assert audit['losing_full_calendar_years'] == data['losing_full_calendar_years']
 
           candidates = pd.read_csv(root / 'rebalance_candidates.csv')
           orders = pd.read_csv(root / 'orders.csv')
@@ -82,7 +95,7 @@ jobs:
           if git diff --cached --quiet; then
             echo 'No champion result changes to commit.'
           else
-            git commit -m 'portfolio: materialize B3 Strategy Lab champion result'
+            git commit -m 'portfolio: materialize audited B3 Strategy Lab champion result'
             git pull --rebase origin main
             git push
           fi
