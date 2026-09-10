@@ -7,9 +7,12 @@ on:
     paths:
       - 'src/b3_backtest/backtest/**'
       - 'src/b3_backtest/strategies/**'
+      - 'src/b3_backtest/data_quality.py'
       - 'scripts/run_backtest_matrix.py'
+      - 'scripts/verify_backtest.py'
       - 'scripts/audit_quote_discontinuities.py'
       - 'tests/test_backtest_engine.py'
+      - 'tests/test_signal_strategies.py'
       - 'data/quotes/**'
       - '.github/workflows/backtest-matrix.yml'
 
@@ -40,6 +43,19 @@ jobs:
         env:
           PYTHONPATH: src
         run: python scripts/run_backtest_matrix.py
+      - name: Checkout pinned B3 Strategy Lab source
+        run: |
+          mkdir -p .audit/b3-strategy-lab
+          git -C .audit/b3-strategy-lab init
+          git -C .audit/b3-strategy-lab remote add origin https://github.com/mycroft440/b3-strategy-lab.git
+          git -C .audit/b3-strategy-lab fetch --depth 1 origin 8cb3a9e906dfae69e74d26d8cd3a9c76c380d55d
+          git -C .audit/b3-strategy-lab checkout --detach FETCH_HEAD
+          test "$(git -C .audit/b3-strategy-lab rev-parse HEAD)" = "8cb3a9e906dfae69e74d26d8cd3a9c76c380d55d"
+      - name: Independently verify signals, execution and aggregates
+        env:
+          PYTHONPATH: src
+          B3_STRATEGY_LAB_ROOT: .audit/b3-strategy-lab
+        run: python scripts/verify_backtest.py
       - name: Validate output
         run: |
           test -f results/backtests/strategy_summary.csv
@@ -47,8 +63,19 @@ jobs:
           test -f results/backtests/strategy_annual_results.csv
           test -f results/backtests/methodology.json
           test -f results/backtests/quote_anomalies.csv
+          test -f results/backtests/verification.json
           test "$(($(wc -l < results/backtests/strategy_summary.csv) - 1))" -eq 40
           test "$(($(wc -l < results/backtests/strategy_ticker_results.csv) - 1))" -eq 1600
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path('results/backtests/verification.json').read_text())
+          assert report['status'] == 'PASS'
+          assert report['source_signal_pairs_exact'] == 1600
+          assert report['engine_reference_pairs_exact'] == 1600
+          assert report['matrix_detail_rows_verified'] == 1600
+          assert report['matrix_summary_rows_verified'] == 40
+          PY
       - name: Commit results
         run: |
           git config user.name 'github-actions[bot]'
@@ -57,7 +84,7 @@ jobs:
           if git diff --cached --quiet; then
             echo 'No result changes to commit.'
           else
-            git commit -m 'backtest: materialize 40-strategy results'
+            git commit -m 'backtest: materialize verified 40-strategy results'
             git pull --rebase origin main
             git push
           fi
