@@ -404,6 +404,16 @@ jobs:
           name: run-contract-${{ github.run_id }}
           path: metadata
 
+      - name: Download exact point-in-time data for upstream audit
+        uses: actions/download-artifact@v4
+        with:
+          name: prepared-data-${{ github.run_id }}
+          path: upstream/data
+
+      - name: Verify point-in-time snapshot hashes before merge audit
+        working-directory: upstream
+        run: sha256sum -c "$GITHUB_WORKSPACE/metadata/DATA_FILES.sha256"
+
       - name: Merge upstream-compatible matrix
         env:
           TOP_N: ${{ inputs.top_n }}
@@ -480,8 +490,17 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
+          name: run-contract-${{ github.run_id }}
+          path: metadata
+
+      - uses: actions/download-artifact@v4
+        with:
           name: exhaustive-matrix-${{ github.run_number }}
           path: reports
+
+      - name: Verify point-in-time snapshot hashes before realistic replay
+        working-directory: upstream
+        run: sha256sum -c "$GITHUB_WORKSPACE/metadata/DATA_FILES.sha256"
 
       - name: Replay top candidates
         env:
@@ -512,7 +531,7 @@ jobs:
             reports/REALISTIC_TOP_*.md
             reports/REALISTIC_TOP_*_REJECTED.json
             reports/REALISTIC_TOP_*_REJECTED.md
-            reports/realistic_candidates/**
+            upstream/reports/realistic_candidates/**
           if-no-files-found: warn
           retention-days: 90
 
@@ -545,6 +564,15 @@ jobs:
         with:
           name: prepared-data-${{ github.run_id }}
           path: upstream/data
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: run-contract-${{ github.run_id }}
+          path: metadata
+
+      - name: Verify point-in-time snapshot hashes before OOS validation
+        working-directory: upstream
+        run: sha256sum -c "$GITHUB_WORKSPACE/metadata/DATA_FILES.sha256"
 
       - name: Require fully certified market inputs for OOS claims
         working-directory: upstream
