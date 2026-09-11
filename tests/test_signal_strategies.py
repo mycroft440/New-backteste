@@ -11,7 +11,12 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from b3_backtest.strategies import generate_events, list_strategies, run_strategy  # noqa: E402
+from b3_backtest.strategies import (  # noqa: E402
+    generate_events,
+    list_original_strategies,
+    list_strategies,
+    run_strategy,
+)
 
 
 class SignalStrategyTests(unittest.TestCase):
@@ -19,8 +24,8 @@ class SignalStrategyTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.frame = pd.read_csv(ROOT / "data" / "quotes" / "PETR4.csv")
 
-    def test_initial_catalog_has_exactly_40_unique_strategies(self) -> None:
-        specs = list_strategies()
+    def test_original_benchmark_has_exactly_40_unique_strategies(self) -> None:
+        specs = list_original_strategies()
         self.assertEqual(len(specs), 40)
         self.assertEqual(len({spec.name for spec in specs}), 40)
         self.assertEqual(
@@ -28,8 +33,15 @@ class SignalStrategyTests(unittest.TestCase):
             {"moving_average_cross", "macd", "donchian", "rsi_reversion"},
         )
 
-    def test_all_40_strategies_return_binary_position_state(self) -> None:
-        for spec in list_strategies():
+    def test_full_catalog_is_unique_and_contains_original_benchmark(self) -> None:
+        original = list_original_strategies()
+        full = list_strategies()
+        self.assertGreaterEqual(len(full), len(original))
+        self.assertEqual(len({spec.name for spec in full}), len(full))
+        self.assertTrue({spec.name for spec in original}.issubset({spec.name for spec in full}))
+
+    def test_all_original_40_strategies_return_binary_position_state(self) -> None:
+        for spec in list_original_strategies():
             with self.subTest(strategy=spec.name):
                 positions = run_strategy(self.frame, spec.name)
                 self.assertEqual(len(positions), len(self.frame))
