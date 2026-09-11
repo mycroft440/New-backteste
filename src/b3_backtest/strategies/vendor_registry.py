@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import lru_cache
 import importlib
 from pathlib import Path
 from typing import Callable, Iterable
@@ -77,6 +78,7 @@ def _register(
     # stable definition; batch generation records only unique strategy names.
 
 
+@lru_cache(maxsize=1)
 def discover_vendored_strategies() -> tuple[VendoredStrategy, ...]:
     """Discover all stock signal strategies exported by the pinned source package."""
     if not vendor_available():
