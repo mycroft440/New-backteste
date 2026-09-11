@@ -15,7 +15,7 @@ if str(SRC) not in sys.path:
 from b3_backtest.data_quality import apply_known_scale_repairs, assert_trusted_window
 from b3_backtest.portfolio import simulate_signal_filtered_champion
 from b3_backtest.portfolio.b3lab_champion import SOURCE_COST_BPS, SOURCE_SLIPPAGE_BPS
-from b3_backtest.strategies.catalog import list_strategies
+from b3_backtest.strategies.catalog import list_original_strategies
 
 DATA_DIR = ROOT / "data" / "quotes"
 DEFAULT_OUTPUT = ROOT / "results" / "portfolio" / "signal_filtered_champion"
@@ -23,7 +23,7 @@ DEFAULT_OUTPUT = ROOT / "results" / "portfolio" / "signal_filtered_champion"
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Run all 40 BUY/SELL strategies as the uptrend gate for the same champion rebalance manager."
+        description="Run the original 40 BUY/SELL strategies as the uptrend gate for the same champion rebalance manager."
     )
     parser.add_argument("--initial-cash", type=float, default=1000.0)
     parser.add_argument("--commission-bps", type=float, default=SOURCE_COST_BPS)
@@ -61,9 +61,9 @@ def main() -> int:
     # strategy gates, so compute each monthly snapshot once and reuse it.
     management_cache: dict[pd.Timestamp, pd.DataFrame] = {}
 
-    specs = list_strategies()
+    specs = list_original_strategies()
     if len(specs) != 40:
-        raise SystemExit(f"expected 40 signal strategies, found {len(specs)}")
+        raise SystemExit(f"expected 40 original signal strategies, found {len(specs)}")
 
     for spec in specs:
         result = simulate_signal_filtered_champion(
