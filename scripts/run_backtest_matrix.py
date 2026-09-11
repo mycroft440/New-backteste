@@ -7,7 +7,7 @@ import pandas as pd
 
 from b3_backtest.backtest import simulate_from_positions
 from b3_backtest.data_quality import apply_known_scale_repairs, assert_trusted_window
-from b3_backtest.strategies.catalog import list_strategies, run_strategy
+from b3_backtest.strategies.catalog import list_original_strategies, run_strategy
 
 INITIAL_CASH = 1000.0
 EXPECTED_TICKERS = 40
@@ -39,9 +39,9 @@ def main() -> None:
     if len(quote_paths) != EXPECTED_TICKERS:
         raise RuntimeError(f"expected {EXPECTED_TICKERS} quote files, found {len(quote_paths)}")
 
-    specs = list_strategies()
+    specs = list_original_strategies()
     if len(specs) != EXPECTED_STRATEGIES:
-        raise RuntimeError(f"expected {EXPECTED_STRATEGIES} strategies, found {len(specs)}")
+        raise RuntimeError(f"expected {EXPECTED_STRATEGIES} original strategies, found {len(specs)}")
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
