@@ -50,7 +50,6 @@ def relative_dependencies(path: Path, package_root: Path) -> set[Path]:
 
 def collect_files(source_root: Path) -> list[Path]:
     pending = [source_root / name for name in ENTRY_MODULES]
-    pending.append(source_root / "__init__.py")
     collected: set[Path] = set()
     while pending:
         path = pending.pop()
@@ -78,10 +77,24 @@ def main() -> int:
     if target_root.exists():
         shutil.rmtree(target_root)
     target_root.mkdir(parents=True, exist_ok=True)
+    target_root.parent.mkdir(parents=True, exist_ok=True)
+
+    # Do not copy the source package __init__.py: it imports unrelated application
+    # modules. The vendored package intentionally exposes only the strategy subset.
+    (target_root.parent / "__init__.py").write_text(
+        '"""Vendored strategy packages used for reproducible signal execution."""\n',
+        encoding="utf-8",
+    )
+    (target_root / "__init__.py").write_text(
+        '"""Pinned B3 Strategy Lab strategy implementation subset."""\n',
+        encoding="utf-8",
+    )
 
     copied: list[str] = []
     for source in collect_files(source_root):
         relative = source.relative_to(source_root)
+        if relative.as_posix() == "__init__.py":
+            continue
         destination = target_root / relative
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, destination)
