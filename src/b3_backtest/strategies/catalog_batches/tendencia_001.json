@@ -1,0 +1,243 @@
+{
+  "source_repository": "mycroft440/b3-strategy-lab",
+  "source_commit": "8cb3a9e906dfae69e74d26d8cd3a9c76c380d55d",
+  "family": "tendencia",
+  "batch": "tendencia_001",
+  "count": 39,
+  "strategies": [
+    {
+      "name": "aroon_trend",
+      "family": "tendencia",
+      "description": "Aroon: segue novas maximas e sai quando novas minimas dominam.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "atr_channel_trend",
+      "family": "tendencia",
+      "description": "Entrada acima de canal EMA+ATR e saida na perda da media.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "atr_trailing_trend",
+      "family": "tendencia",
+      "description": "Tendencia acima da EMA com trailing stop baseado em ATR.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "cmf_ema_trend",
+      "family": "tendencia",
+      "description": "Tendencia de preco por EMA confirmada por Chaikin Money Flow.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "donchian_40_20_trend",
+      "family": "tendencia",
+      "description": "Donchian 40/20: rompe maxima de 40 e sai na minima de 20.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "donchian_80_30_trend",
+      "family": "tendencia",
+      "description": "Donchian mais lento 80/30 para tendencias prolongadas.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "efficiency_ratio_trend",
+      "family": "tendencia",
+      "description": "Razao de eficiencia alta e direcao positiva para filtrar ruido lateral.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "ema_cross",
+      "family": "tendencia",
+      "description": "Cruzamento de medias moveis exponenciais.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "ema_fast_slow_trend",
+      "family": "tendencia",
+      "description": "EMA curta acima da longa com preco acima da EMA curta.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "ema_pullback_trend",
+      "family": "tendencia",
+      "description": "Compra recuperacao da EMA curta durante tendencia definida pela EMA longa.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "ema_slope_price_trend",
+      "family": "tendencia",
+      "description": "Preco acima de EMA cuja inclinacao permanece positiva.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "ema_triple_alignment_trend",
+      "family": "tendencia",
+      "description": "Alinhamento de tres EMAs em ordem de alta.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "frama_trend",
+      "family": "tendencia",
+      "description": "Tendencia pela media fractal adaptativa FRAMA de Ehlers.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "highest_close_breakout_trend",
+      "family": "tendencia",
+      "description": "Rompimento do maior fechamento com saida pelo menor fechamento recente.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "ichimoku_cloud",
+      "family": "tendencia",
+      "description": "Ichimoku causal: preco acima da nuvem e Tenkan acima da Kijun.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "kama_trend",
+      "family": "tendencia",
+      "description": "Tendencia por KAMA de Kaufman com confirmacao simultanea de preco e inclinacao.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "low_vol_momentum_trend",
+      "family": "tendencia",
+      "description": "Momentum e EMA positivos sob teto de volatilidade realizada.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "macd",
+      "family": "tendencia",
+      "description": "Segue a linha MACD contra a linha de sinal.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "macd_signal_long_trend",
+      "family": "tendencia",
+      "description": "MACD acima do sinal e de zero, confirmado por EMA longa.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "macd_zero_trend",
+      "family": "tendencia",
+      "description": "MACD acima de zero com preco acima da EMA lenta.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "nvi_dual_ema_trend",
+      "family": "tendencia",
+      "description": "NVI acima de duas EMAs alinhadas em alta.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "parabolic_sar_trend",
+      "family": "tendencia",
+      "description": "Parabolic SAR de Wilder: comprado apenas no estado ascendente.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "precision_trend_ehlers",
+      "family": "tendencia",
+      "description": "Precision Trend de Ehlers: compra no ROC positivo do filtro e sai no ROC negativo.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "price_sma",
+      "family": "tendencia",
+      "description": "Fica comprado quando o preco fecha acima da media simples.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "roc_dual_horizon_trend",
+      "family": "tendencia",
+      "description": "ROC positivo simultaneamente em dois horizontes.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "roc_stack_trend",
+      "family": "tendencia",
+      "description": "Momentum positivo em tres horizontes para confirmar tendencia.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "sma_cross",
+      "family": "tendencia",
+      "description": "Cruzamento de medias moveis simples.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "sma_pullback_trend",
+      "family": "tendencia",
+      "description": "Compra recuperacao da SMA curta dentro de tendencia de alta.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "sma_slope_price_trend",
+      "family": "tendencia",
+      "description": "Preco acima de SMA com inclinacao positiva.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "sma_stop",
+      "family": "tendencia",
+      "description": "Segue media simples com stop percentual a partir do topo.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "sma_triple_alignment_trend",
+      "family": "tendencia",
+      "description": "Alinhamento de tres SMAs em ordem de alta.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "smi_ergodic_adx_filter",
+      "family": "tendencia",
+      "description": "SMI Ergodic alinhado ao sinal somente quando o ADX confirma tendencia.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "smi_ergodic_ema_trend",
+      "family": "tendencia",
+      "description": "SMI Ergodic confirmado por fechamento acima da EMA de tendencia.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "smi_ergodic_ema_zero",
+      "family": "tendencia",
+      "description": "SMI Ergodic acima do sinal e de zero, com preco acima da EMA de tendencia.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "smi_ergodic_histogram_continuation",
+      "family": "tendencia",
+      "description": "Continuacao: histograma negativo arma o pullback e o retorno acima de zero dispara em tendencia positiva.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "supertrend_follow",
+      "family": "tendencia",
+      "description": "Segue tendencia pelo indicador SuperTrend baseado em ATR.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "typical_price_sma_trend",
+      "family": "tendencia",
+      "description": "Typical Price acima de sua media simples.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "ultimate_oscillator_ehlers",
+      "family": "tendencia",
+      "description": "Ultimate Oscillator de Ehlers: comprado acima de zero e em caixa abaixo de zero.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "vortex_trend",
+      "family": "tendencia",
+      "description": "Vortex de Botes-Siepman: comprado enquanto VI+ permanece acima de VI-.",
+      "source_module": "strategies.py"
+    }
+  ]
+}

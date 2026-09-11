@@ -1,0 +1,21 @@
+{
+  "source_repository": "mycroft440/b3-strategy-lab",
+  "source_commit": "8cb3a9e906dfae69e74d26d8cd3a9c76c380d55d",
+  "family": "price_action",
+  "batch": "price_action_001",
+  "count": 2,
+  "strategies": [
+    {
+      "name": "inside_bar_breakout",
+      "family": "price_action",
+      "description": "Inside Bar: rompe a maxima da barra-mae com saidas objetivas.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "nr7_breakout",
+      "family": "price_action",
+      "description": "NR7 de Crabel: rompe a maxima do menor range em sete barras.",
+      "source_module": "strategies.py"
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "source_repository": "mycroft440/b3-strategy-lab",
+  "source_commit": "8cb3a9e906dfae69e74d26d8cd3a9c76c380d55d",
+  "family": "rompimento",
+  "batch": "rompimento_001",
+  "count": 16,
+  "strategies": [
+    {
+      "name": "atr_breakout",
+      "family": "rompimento",
+      "description": "Rompimento de maxima com stop movel por ATR.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "atr_breakout_10_atr7_x2",
+      "family": "rompimento",
+      "description": "Rompimento de maxima com stop movel calculado por ATR.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "atr_breakout_20_atr10_x2",
+      "family": "rompimento",
+      "description": "Rompimento de maxima com stop movel calculado por ATR.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "atr_breakout_20_atr14_x25",
+      "family": "rompimento",
+      "description": "Rompimento de maxima com stop movel calculado por ATR.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "atr_breakout_20_atr14_x3_trend100",
+      "family": "rompimento",
+      "description": "Rompimento de maxima com stop movel calculado por ATR.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "atr_breakout_20_atr14_x3_trend50",
+      "family": "rompimento",
+      "description": "Rompimento de maxima com stop movel calculado por ATR.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "atr_breakout_20_atr14_x4",
+      "family": "rompimento",
+      "description": "Rompimento de maxima com stop movel calculado por ATR.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "atr_breakout_55_atr14_x3",
+      "family": "rompimento",
+      "description": "Rompimento de maxima com stop movel calculado por ATR.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "atr_breakout_55_atr14_x3_trend100",
+      "family": "rompimento",
+      "description": "Rompimento de maxima com stop movel calculado por ATR.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "atr_breakout_55_atr21_x4",
+      "family": "rompimento",
+      "description": "Rompimento de maxima com stop movel calculado por ATR.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "atr_breakout_55_atr21_x4_trend200",
+      "family": "rompimento",
+      "description": "Rompimento de maxima com stop movel calculado por ATR.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "breakout",
+      "family": "rompimento",
+      "description": "Compra rompimento de maxima e sai na perda de minima.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "chandelier_breakout",
+      "family": "rompimento",
+      "description": "Rompimento com saida Chandelier/ATR e filtro opcional de volume.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "keltner_breakout",
+      "family": "rompimento",
+      "description": "Rompimento de canal de Keltner com filtro opcional de tendencia.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "range_expansion_breakout",
+      "family": "rompimento",
+      "description": "Compra expansao de range no fechamento com stop por ATR.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "squeeze_breakout",
+      "family": "rompimento",
+      "description": "Rompimento altista apos Bollinger comprimir dentro do canal de Keltner.",
+      "source_module": "strategies.py"
+    }
+  ]
+}

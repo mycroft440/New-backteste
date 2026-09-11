@@ -1,0 +1,211 @@
+{
+  "source_repository": "mycroft440/b3-strategy-lab",
+  "source_commit": "8cb3a9e906dfae69e74d26d8cd3a9c76c380d55d",
+  "batch_size_limit": 40,
+  "native_strategy_count": 40,
+  "source_unique_strategy_count": 250,
+  "source_overlap_with_native_count": 40,
+  "source_overlap_with_native": [
+    "donchian_breakout_100_50",
+    "donchian_breakout_100_50_trend200",
+    "donchian_breakout_10_5",
+    "donchian_breakout_20_10",
+    "donchian_breakout_20_10_trend100",
+    "donchian_breakout_20_10_trend50",
+    "donchian_breakout_40_20",
+    "donchian_breakout_55_20",
+    "donchian_breakout_55_20_trend100",
+    "donchian_breakout_55_20_trend200",
+    "ema_cross_100_200",
+    "ema_cross_10_30",
+    "ema_cross_20_50",
+    "ema_cross_50_100",
+    "ema_cross_5_20",
+    "macd_10_30_9",
+    "macd_12_26_12",
+    "macd_12_26_5",
+    "macd_12_26_9_trend100",
+    "macd_12_26_9_trend200",
+    "macd_12_26_9_trend50",
+    "macd_19_39_9",
+    "macd_24_52_18",
+    "macd_5_35_5",
+    "macd_8_17_9",
+    "rsi14_reversion_25_60",
+    "rsi14_reversion_30_70_trend200",
+    "rsi2_reversion_10_70",
+    "rsi2_reversion_5_70",
+    "rsi2_reversion_5_70_trend100",
+    "rsi2_reversion_5_70_trend200",
+    "rsi3_reversion_15_70",
+    "rsi5_reversion_20_65",
+    "rsi5_reversion_20_65_trend100",
+    "rsi7_reversion_25_65",
+    "sma_cross_100_200",
+    "sma_cross_10_50",
+    "sma_cross_20_100",
+    "sma_cross_50_100",
+    "sma_cross_5_20"
+  ],
+  "vendored_strategy_count": 210,
+  "total_catalog_strategy_count": 250,
+  "batch_count": 19,
+  "families": {
+    "adaptativa": 1,
+    "avancada": 10,
+    "base": 1,
+    "benchmark": 1,
+    "combinada": 52,
+    "momentum": 22,
+    "price_action": 2,
+    "regime": 3,
+    "reversao": 23,
+    "reversao_volume": 1,
+    "rompimento": 16,
+    "rompimento_volatilidade": 2,
+    "sazonalidade": 2,
+    "tendencia": 39,
+    "tendencia_volume": 6,
+    "volatilidade": 2,
+    "volume": 21,
+    "volume_hibrido": 6
+  },
+  "source_modules": {
+    "strategies.py": 210
+  },
+  "batches": [
+    {
+      "file": "adaptativa_001.json",
+      "family": "adaptativa",
+      "count": 1,
+      "first_strategy": "smi_ergodic_dynamic_zones",
+      "last_strategy": "smi_ergodic_dynamic_zones"
+    },
+    {
+      "file": "avancada_001.json",
+      "family": "avancada",
+      "count": 10,
+      "first_strategy": "dsma_trend",
+      "last_strategy": "profit_only_exit_sma_atr_catastrophe"
+    },
+    {
+      "file": "base_001.json",
+      "family": "base",
+      "count": 1,
+      "first_strategy": "sma",
+      "last_strategy": "sma"
+    },
+    {
+      "file": "benchmark_001.json",
+      "family": "benchmark",
+      "count": 1,
+      "first_strategy": "buy_and_hold",
+      "last_strategy": "buy_and_hold"
+    },
+    {
+      "file": "combinada_001.json",
+      "family": "combinada",
+      "count": 40,
+      "first_strategy": "adx_rsi_trend_14_20_sma100",
+      "last_strategy": "sma20_stochastic_14_20_80"
+    },
+    {
+      "file": "combinada_002.json",
+      "family": "combinada",
+      "count": 12,
+      "first_strategy": "sma50_stochastic_14_20_80",
+      "last_strategy": "supertrend_stochastic_7_2_14"
+    },
+    {
+      "file": "momentum_001.json",
+      "family": "momentum",
+      "count": 22,
+      "first_strategy": "awesome_oscillator",
+      "last_strategy": "true_strength_index"
+    },
+    {
+      "file": "price_action_001.json",
+      "family": "price_action",
+      "count": 2,
+      "first_strategy": "inside_bar_breakout",
+      "last_strategy": "nr7_breakout"
+    },
+    {
+      "file": "regime_001.json",
+      "family": "regime",
+      "count": 3,
+      "first_strategy": "low_vol_trend",
+      "last_strategy": "vertical_horizontal_filter"
+    },
+    {
+      "file": "reversao_001.json",
+      "family": "reversao",
+      "count": 23,
+      "first_strategy": "bollinger_reversion",
+      "last_strategy": "typical_price_pullback"
+    },
+    {
+      "file": "reversao_volume_001.json",
+      "family": "reversao_volume",
+      "count": 1,
+      "first_strategy": "mfi_reversal",
+      "last_strategy": "mfi_reversal"
+    },
+    {
+      "file": "rompimento_001.json",
+      "family": "rompimento",
+      "count": 16,
+      "first_strategy": "atr_breakout",
+      "last_strategy": "squeeze_breakout"
+    },
+    {
+      "file": "rompimento_volatilidade_001.json",
+      "family": "rompimento_volatilidade",
+      "count": 2,
+      "first_strategy": "high_vol_breakout",
+      "last_strategy": "realized_vol_breakout"
+    },
+    {
+      "file": "sazonalidade_001.json",
+      "family": "sazonalidade",
+      "count": 2,
+      "first_strategy": "halloween_effect",
+      "last_strategy": "turn_of_month"
+    },
+    {
+      "file": "tendencia_001.json",
+      "family": "tendencia",
+      "count": 39,
+      "first_strategy": "aroon_trend",
+      "last_strategy": "vortex_trend"
+    },
+    {
+      "file": "tendencia_volume_001.json",
+      "family": "tendencia_volume",
+      "count": 6,
+      "first_strategy": "cmf_price_trend",
+      "last_strategy": "nvi_price_confirm"
+    },
+    {
+      "file": "volatilidade_001.json",
+      "family": "volatilidade",
+      "count": 2,
+      "first_strategy": "choppiness_breakout",
+      "last_strategy": "smi_ergodic_atr_filter"
+    },
+    {
+      "file": "volume_001.json",
+      "family": "volume",
+      "count": 21,
+      "first_strategy": "chaikin_money_flow",
+      "last_strategy": "smi_ergodic_volume_filter"
+    },
+    {
+      "file": "volume_hibrido_001.json",
+      "family": "volume_hibrido",
+      "count": 6,
+      "first_strategy": "cmf_efi_confirm",
+      "last_strategy": "volume_triple_confirm"
+    }
+  ]
+}

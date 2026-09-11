@@ -1,0 +1,21 @@
+{
+  "source_repository": "mycroft440/b3-strategy-lab",
+  "source_commit": "8cb3a9e906dfae69e74d26d8cd3a9c76c380d55d",
+  "family": "volatilidade",
+  "batch": "volatilidade_001",
+  "count": 2,
+  "strategies": [
+    {
+      "name": "choppiness_breakout",
+      "family": "volatilidade",
+      "description": "Rompimento depois que o Choppiness Index sai de compressao para tendencia.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "smi_ergodic_atr_filter",
+      "family": "volatilidade",
+      "description": "Cruzamento SMI Ergodic aceito apenas quando o ATR confirma volatilidade suficiente.",
+      "source_module": "strategies.py"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "source_repository": "mycroft440/b3-strategy-lab",
+  "source_commit": "8cb3a9e906dfae69e74d26d8cd3a9c76c380d55d",
+  "family": "sazonalidade",
+  "batch": "sazonalidade_001",
+  "count": 2,
+  "strategies": [
+    {
+      "name": "halloween_effect",
+      "family": "sazonalidade",
+      "description": "Efeito Halloween: comprado de novembro a abril e em caixa de maio a outubro.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "turn_of_month",
+      "family": "sazonalidade",
+      "description": "Janela sazonal do ultimo pregao ate o terceiro pregao do mes seguinte.",
+      "source_module": "strategies.py"
+    }
+  ]
+}

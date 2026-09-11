@@ -1,0 +1,147 @@
+{
+  "source_repository": "mycroft440/b3-strategy-lab",
+  "source_commit": "8cb3a9e906dfae69e74d26d8cd3a9c76c380d55d",
+  "family": "reversao",
+  "batch": "reversao_001",
+  "count": 23,
+  "strategies": [
+    {
+      "name": "bollinger_reversion",
+      "family": "reversao",
+      "description": "Compra na banda inferior de Bollinger e sai no retorno ao centro.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "connors_rsi_reversion",
+      "family": "reversao",
+      "description": "Reversao por Connors RSI.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "down_streak_reversion",
+      "family": "reversao",
+      "description": "Compra apos sequencia de quedas com IBS baixo.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "fisher_transform_reversal",
+      "family": "reversao",
+      "description": "Fisher Transform: compra a virada na sobrevenda e sai na virada da sobrecompra.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "ibs_reversion",
+      "family": "reversao",
+      "description": "Reversao curta por Internal Bar Strength.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "laguerre_rsi_reversal",
+      "family": "reversao",
+      "description": "Laguerre RSI de Ehlers: recuperacao da sobrevenda com saida apos sobrecompra.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "mass_index_reversal",
+      "family": "reversao",
+      "description": "Mass Index: lado comprador da reversal bulge com saida por EMA ou tempo.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "rsi2_trend_reversion",
+      "family": "reversao",
+      "description": "Reversao por RSI curto com filtro de tendencia e saida por media curta.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "rsi_bollinger",
+      "family": "reversao",
+      "description": "Combina sobrevenda por RSI e Bollinger.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "rsi_cross_reversion",
+      "family": "reversao",
+      "description": "Entra quando o RSI recupera acima do limite inferior.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "rsi_ibs_reversion",
+      "family": "reversao",
+      "description": "Combina RSI curto e IBS baixo para entrada.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "rsi_reversion",
+      "family": "reversao",
+      "description": "Compra sobrevenda por RSI e sai em sobrecompra.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "rsi_reversion_atr",
+      "family": "reversao",
+      "description": "Reversao por RSI com stop de volatilidade por ATR.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "rsi_reversion_hold",
+      "family": "reversao",
+      "description": "Reversao por RSI com tempo maximo de permanencia.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "rsi_reversion_trend_entry",
+      "family": "reversao",
+      "description": "Reversao por RSI com filtro de tendencia apenas na entrada.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "rvi_reversal",
+      "family": "reversao",
+      "description": "Reversao por cruzamento do Relative Vigor Index apos fraqueza extrema.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "smi_ergodic_123_reversal",
+      "family": "reversao",
+      "description": "Padrao causal 1-2-3 de reversao altista confirmado pelo SMI Ergodic.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "smi_ergodic_divergence",
+      "family": "reversao",
+      "description": "Divergencia altista causal: nova minima de preco sem nova minima do SMI, confirmada por cruzamento.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "smi_ergodic_oversold_cross",
+      "family": "reversao",
+      "description": "Cruzamento altista do SMI Ergodic apos tocar sobrevenda, com saida por cruzamento ou sobrecompra.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "smi_ergodic_pullback",
+      "family": "reversao",
+      "description": "Pullback na EMA curta dentro de tendencia positiva, confirmado pelo SMI Ergodic.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "trend_pullback",
+      "family": "reversao",
+      "description": "Compra pullback em tendencia positiva.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "turtle_soup",
+      "family": "reversao",
+      "description": "Turtle Soup long-only: falso rompimento da minima com saida por media, ATR ou tempo.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "typical_price_pullback",
+      "family": "reversao",
+      "description": "Compra desconto do Typical Price contra sua media e sai na recuperacao.",
+      "source_module": "strategies.py"
+    }
+  ]
+}

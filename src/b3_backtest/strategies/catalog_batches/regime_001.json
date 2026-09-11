@@ -1,0 +1,27 @@
+{
+  "source_repository": "mycroft440/b3-strategy-lab",
+  "source_commit": "8cb3a9e906dfae69e74d26d8cd3a9c76c380d55d",
+  "family": "regime",
+  "batch": "regime_001",
+  "count": 3,
+  "strategies": [
+    {
+      "name": "low_vol_trend",
+      "family": "regime",
+      "description": "Tendencia de preco filtrada por baixa volatilidade realizada.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "realized_vol_low_momentum",
+      "family": "regime",
+      "description": "Momentum positivo apenas em regime de volatilidade realizada controlada.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "vertical_horizontal_filter",
+      "family": "regime",
+      "description": "VHF: entra em tendencia altista direcional e sai quando o regime enfraquece.",
+      "source_module": "strategies.py"
+    }
+  ]
+}

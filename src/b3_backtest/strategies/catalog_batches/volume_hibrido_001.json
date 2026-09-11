@@ -1,0 +1,45 @@
+{
+  "source_repository": "mycroft440/b3-strategy-lab",
+  "source_commit": "8cb3a9e906dfae69e74d26d8cd3a9c76c380d55d",
+  "family": "volume_hibrido",
+  "batch": "volume_hibrido_001",
+  "count": 6,
+  "strategies": [
+    {
+      "name": "cmf_efi_confirm",
+      "family": "volume_hibrido",
+      "description": "Chaikin Money Flow e Force Index simultaneamente positivos.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "eom_nvi_confirm",
+      "family": "volume_hibrido",
+      "description": "Ease of Movement positivo com NVI acima da EMA.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "mfi_cmf_confirm",
+      "family": "volume_hibrido",
+      "description": "MFI e CMF precisam confirmar fluxo comprador.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "mfi_efi_confirm",
+      "family": "volume_hibrido",
+      "description": "MFI e Elder Force Index confirmam entrada e saida.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "nvi_mfi_confirm",
+      "family": "volume_hibrido",
+      "description": "NVI acima da EMA combinado com MFI comprador.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "volume_triple_confirm",
+      "family": "volume_hibrido",
+      "description": "CMF, Force Index e Ease of Movement confirmam o regime comprador.",
+      "source_module": "strategies.py"
+    }
+  ]
+}

@@ -1,0 +1,135 @@
+{
+  "source_repository": "mycroft440/b3-strategy-lab",
+  "source_commit": "8cb3a9e906dfae69e74d26d8cd3a9c76c380d55d",
+  "family": "volume",
+  "batch": "volume_001",
+  "count": 21,
+  "strategies": [
+    {
+      "name": "chaikin_money_flow",
+      "family": "volume",
+      "description": "Cruzamento positivo do Chaikin Money Flow com filtro opcional de tendencia.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "cmf_threshold_hysteresis",
+      "family": "volume",
+      "description": "CMF com bandas distintas de entrada e saida para reduzir ruido.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "cmf_zero_cross",
+      "family": "volume",
+      "description": "Comprado enquanto Chaikin Money Flow permanece positivo.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "ease_of_movement",
+      "family": "volume",
+      "description": "Ease of Movement suavizado: comprado quando preco e volume favorecem alta.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "efi_zero_cross",
+      "family": "volume",
+      "description": "Elder Force Index positivo como regime comprador.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "elder_force_index",
+      "family": "volume",
+      "description": "Force Index de Elder positivo com confirmacao da tendencia de preco.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "eom_zero_cross",
+      "family": "volume",
+      "description": "Ease of Movement positivo como sinal de compra.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "klinger_volume_oscillator",
+      "family": "volume",
+      "description": "Klinger Volume Oscillator acima da EMA de sinal.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "mfi_momentum_10_50_30_sma100",
+      "family": "volume",
+      "description": "Money Flow Index combina preco e volume com filtro de tendencia.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "mfi_momentum_14_55_35_sma100",
+      "family": "volume",
+      "description": "Money Flow Index combina preco e volume com filtro de tendencia.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "mfi_momentum_14_55_35_sma200",
+      "family": "volume",
+      "description": "Money Flow Index combina preco e volume com filtro de tendencia.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "mfi_momentum_21_60_40_sma200",
+      "family": "volume",
+      "description": "Money Flow Index combina preco e volume com filtro de tendencia.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "mfi_momentum_7_50_30_sma50",
+      "family": "volume",
+      "description": "Money Flow Index combina preco e volume com filtro de tendencia.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "mfi_trend_10_20_80_sma100",
+      "family": "volume",
+      "description": "Money Flow Index combina preco e volume com filtro de tendencia.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "mfi_trend_14_20_80_sma100",
+      "family": "volume",
+      "description": "Money Flow Index combina preco e volume com filtro de tendencia.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "mfi_trend_14_25_75_sma200",
+      "family": "volume",
+      "description": "Money Flow Index combina preco e volume com filtro de tendencia.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "mfi_trend_21_25_75_sma200",
+      "family": "volume",
+      "description": "Money Flow Index combina preco e volume com filtro de tendencia.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "mfi_trend_7_20_80_sma50",
+      "family": "volume",
+      "description": "Money Flow Index combina preco e volume com filtro de tendencia.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "negative_volume_index",
+      "family": "volume",
+      "description": "Negative Volume Index de Fosback acima de sua EMA anual.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "nvi_ema_trend",
+      "family": "volume",
+      "description": "Negative Volume Index acima de sua EMA.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "smi_ergodic_volume_filter",
+      "family": "volume",
+      "description": "Cruzamento altista do SMI Ergodic confirmado por volume acima da media.",
+      "source_module": "strategies.py"
+    }
+  ]
+}

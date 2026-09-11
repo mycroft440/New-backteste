@@ -1,0 +1,69 @@
+{
+  "source_repository": "mycroft440/b3-strategy-lab",
+  "source_commit": "8cb3a9e906dfae69e74d26d8cd3a9c76c380d55d",
+  "family": "avancada",
+  "batch": "avancada_001",
+  "count": 10,
+  "strategies": [
+    {
+      "name": "dsma_trend",
+      "family": "avancada",
+      "description": "Refinamento avancado com tendencia, osciladores e controle de saida.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "dsma_trend_fast",
+      "family": "avancada",
+      "description": "Refinamento avancado com tendencia, osciladores e controle de saida.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "dsma_trend_slow",
+      "family": "avancada",
+      "description": "Refinamento avancado com tendencia, osciladores e controle de saida.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "ema_rsi_stochastic_adx_10_30",
+      "family": "avancada",
+      "description": "Refinamento avancado com tendencia, osciladores e controle de saida.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "ema_rsi_stochastic_adx_20_50",
+      "family": "avancada",
+      "description": "Refinamento avancado com tendencia, osciladores e controle de saida.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "ema_rsi_stochastic_adx_50_100",
+      "family": "avancada",
+      "description": "Refinamento avancado com tendencia, osciladores e controle de saida.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "ema_rsi_stochastic_adx_50_200",
+      "family": "avancada",
+      "description": "Refinamento avancado com tendencia, osciladores e controle de saida.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "profit_only_exit_sma100_atr3_catastrophe6",
+      "family": "avancada",
+      "description": "Refinamento avancado com tendencia, osciladores e controle de saida.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "profit_only_exit_sma200_atr4_catastrophe8",
+      "family": "avancada",
+      "description": "Refinamento avancado com tendencia, osciladores e controle de saida.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "profit_only_exit_sma_atr_catastrophe",
+      "family": "avancada",
+      "description": "Refinamento avancado com tendencia, osciladores e controle de saida.",
+      "source_module": "strategies.py"
+    }
+  ]
+}

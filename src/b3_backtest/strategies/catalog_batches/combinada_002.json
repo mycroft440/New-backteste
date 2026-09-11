@@ -1,0 +1,81 @@
+{
+  "source_repository": "mycroft440/b3-strategy-lab",
+  "source_commit": "8cb3a9e906dfae69e74d26d8cd3a9c76c380d55d",
+  "family": "combinada",
+  "batch": "combinada_002",
+  "count": 12,
+  "strategies": [
+    {
+      "name": "sma50_stochastic_14_20_80",
+      "family": "combinada",
+      "description": "Media movel define a tendencia; Estocastico define o pullback e a saida.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "smi_ergodic_macd_confirm",
+      "family": "combinada",
+      "description": "SMI Ergodic e MACD precisam concordar simultaneamente para manter a posicao comprada.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "supertrend_rsi_10_2_14",
+      "family": "combinada",
+      "description": "SuperTrend define a direcao e um oscilador confirma entrada e saida.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "supertrend_rsi_10_3_14",
+      "family": "combinada",
+      "description": "SuperTrend define a direcao e um oscilador confirma entrada e saida.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "supertrend_rsi_14_3_14",
+      "family": "combinada",
+      "description": "SuperTrend define a direcao e um oscilador confirma entrada e saida.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "supertrend_rsi_21_4_21",
+      "family": "combinada",
+      "description": "SuperTrend define a direcao e um oscilador confirma entrada e saida.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "supertrend_rsi_7_2_7",
+      "family": "combinada",
+      "description": "SuperTrend define a direcao e um oscilador confirma entrada e saida.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "supertrend_stochastic_10_2_14",
+      "family": "combinada",
+      "description": "SuperTrend define a direcao e um oscilador confirma entrada e saida.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "supertrend_stochastic_10_3_14",
+      "family": "combinada",
+      "description": "SuperTrend define a direcao e um oscilador confirma entrada e saida.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "supertrend_stochastic_14_3_21",
+      "family": "combinada",
+      "description": "SuperTrend define a direcao e um oscilador confirma entrada e saida.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "supertrend_stochastic_21_4_21",
+      "family": "combinada",
+      "description": "SuperTrend define a direcao e um oscilador confirma entrada e saida.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "supertrend_stochastic_7_2_14",
+      "family": "combinada",
+      "description": "SuperTrend define a direcao e um oscilador confirma entrada e saida.",
+      "source_module": "strategies.py"
+    }
+  ]
+}

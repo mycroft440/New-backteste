@@ -1,0 +1,21 @@
+{
+  "source_repository": "mycroft440/b3-strategy-lab",
+  "source_commit": "8cb3a9e906dfae69e74d26d8cd3a9c76c380d55d",
+  "family": "rompimento_volatilidade",
+  "batch": "rompimento_volatilidade_001",
+  "count": 2,
+  "strategies": [
+    {
+      "name": "high_vol_breakout",
+      "family": "rompimento_volatilidade",
+      "description": "Rompimento de maxima em regime de volatilidade elevada.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "realized_vol_breakout",
+      "family": "rompimento_volatilidade",
+      "description": "Rompimento acompanhado de volatilidade realizada minima, com saida por media.",
+      "source_module": "strategies.py"
+    }
+  ]
+}

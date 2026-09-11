@@ -1,0 +1,28 @@
+{
+  "source_repository": "mycroft440/b3-strategy-lab",
+  "source_commit": "8cb3a9e906dfae69e74d26d8cd3a9c76c380d55d",
+  "entry_modules": [
+    "strategies.py",
+    "additional_strategies.py",
+    "extended_strategies.py",
+    "indicator_strategies.py",
+    "researched_strategies.py",
+    "smi_ergodic_strategies.py",
+    "trend_strategies.py",
+    "extensions.py",
+    "candles.py"
+  ],
+  "files": [
+    "additional_strategies.py",
+    "candles.py",
+    "extended_strategies.py",
+    "extensions.py",
+    "indicator_strategies.py",
+    "research_indicators.py",
+    "researched_strategies.py",
+    "smi_ergodic_strategies.py",
+    "strategies.py",
+    "trend_strategies.py",
+    "user_extensions.py"
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "source_repository": "mycroft440/b3-strategy-lab",
+  "source_commit": "8cb3a9e906dfae69e74d26d8cd3a9c76c380d55d",
+  "family": "tendencia_volume",
+  "batch": "tendencia_volume_001",
+  "count": 6,
+  "strategies": [
+    {
+      "name": "cmf_price_trend",
+      "family": "tendencia_volume",
+      "description": "Tendencia de preco com CMF acima de limiar positivo.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "efi_trend_confirm",
+      "family": "tendencia_volume",
+      "description": "Force Index positivo confirmado por media de preco.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "eom_trend_confirm",
+      "family": "tendencia_volume",
+      "description": "Ease of Movement positivo com tendencia de preco.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "mfi_price_trend",
+      "family": "tendencia_volume",
+      "description": "Typical Price em tendencia com confirmacao do MFI.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "mfi_trend_follow",
+      "family": "tendencia_volume",
+      "description": "MFI forte confirmado por tendencia de preco.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "nvi_price_confirm",
+      "family": "tendencia_volume",
+      "description": "NVI acima da EMA e preco acima da media.",
+      "source_module": "strategies.py"
+    }
+  ]
+}

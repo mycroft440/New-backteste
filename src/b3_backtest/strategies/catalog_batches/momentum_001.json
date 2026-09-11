@@ -1,0 +1,141 @@
+{
+  "source_repository": "mycroft440/b3-strategy-lab",
+  "source_commit": "8cb3a9e906dfae69e74d26d8cd3a9c76c380d55d",
+  "family": "momentum",
+  "batch": "momentum_001",
+  "count": 22,
+  "strategies": [
+    {
+      "name": "awesome_oscillator",
+      "family": "momentum",
+      "description": "Awesome Oscillator: momentum do preco mediano acima ou abaixo de zero.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "coppock_curve",
+      "family": "momentum",
+      "description": "Coppock: compra a inflexao negativa para cima e sai na inflexao positiva.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "gap_momentum",
+      "family": "momentum",
+      "description": "Gap Momentum de Kaufman: compra quando a linha-sinal sobe e sai quando ela cai.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "know_sure_thing",
+      "family": "momentum",
+      "description": "Know Sure Thing de Pring: quatro horizontes de ROC contra a linha de sinal.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "momentum",
+      "family": "momentum",
+      "description": "Compra quando o fechamento supera o fechamento de N candles atras.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "roc_trend",
+      "family": "momentum",
+      "description": "Momentum positivo com filtro de media movel.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "schaff_trend_cycle",
+      "family": "momentum",
+      "description": "Schaff Trend Cycle: ciclo estocastico duplo do MACD com zonas de histerese.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "smi_ergodic_crossover",
+      "family": "momentum",
+      "description": "SMI Ergodic classico: comprado enquanto a linha SMI permanece acima da linha de sinal.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "smi_ergodic_histogram_momentum",
+      "family": "momentum",
+      "description": "Compra aceleracao positiva do histograma SMI Ergodic e sai quando o impulso perde forca.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "smi_ergodic_zero_regime",
+      "family": "momentum",
+      "description": "Regime long-only enquanto a linha SMI Ergodic permanece acima de zero.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "time_series_momentum_12m",
+      "family": "momentum",
+      "description": "Momentum absoluto; compara o fechamento defasado com o passado e aplica filtro de tendencia opcional.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "time_series_momentum_12m_no_skip",
+      "family": "momentum",
+      "description": "Momentum absoluto; compara o fechamento defasado com o passado e aplica filtro de tendencia opcional.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "time_series_momentum_12m_trend100",
+      "family": "momentum",
+      "description": "Momentum absoluto; compara o fechamento defasado com o passado e aplica filtro de tendencia opcional.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "time_series_momentum_12m_trend200",
+      "family": "momentum",
+      "description": "Momentum absoluto; compara o fechamento defasado com o passado e aplica filtro de tendencia opcional.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "time_series_momentum_18m_skip1m",
+      "family": "momentum",
+      "description": "Momentum absoluto; compara o fechamento defasado com o passado e aplica filtro de tendencia opcional.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "time_series_momentum_3m",
+      "family": "momentum",
+      "description": "Momentum absoluto; compara o fechamento defasado com o passado e aplica filtro de tendencia opcional.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "time_series_momentum_6m",
+      "family": "momentum",
+      "description": "Momentum absoluto; compara o fechamento defasado com o passado e aplica filtro de tendencia opcional.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "time_series_momentum_6m_trend100",
+      "family": "momentum",
+      "description": "Momentum absoluto; compara o fechamento defasado com o passado e aplica filtro de tendencia opcional.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "time_series_momentum_6m_trend200",
+      "family": "momentum",
+      "description": "Momentum absoluto; compara o fechamento defasado com o passado e aplica filtro de tendencia opcional.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "time_series_momentum_9m",
+      "family": "momentum",
+      "description": "Momentum absoluto; compara o fechamento defasado com o passado e aplica filtro de tendencia opcional.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "trix_signal",
+      "family": "momentum",
+      "description": "TRIX: cruzamento da variacao da tripla EMA contra sua linha de sinal.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "true_strength_index",
+      "family": "momentum",
+      "description": "True Strength Index: momentum duplamente suavizado contra a linha de sinal.",
+      "source_module": "strategies.py"
+    }
+  ]
+}

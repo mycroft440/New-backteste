@@ -1,0 +1,249 @@
+{
+  "source_repository": "mycroft440/b3-strategy-lab",
+  "source_commit": "8cb3a9e906dfae69e74d26d8cd3a9c76c380d55d",
+  "family": "combinada",
+  "batch": "combinada_001",
+  "count": 40,
+  "strategies": [
+    {
+      "name": "adx_rsi_trend_14_20_sma100",
+      "family": "combinada",
+      "description": "ADX e direcionais confirmam forca compradora acima da media de tendencia.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "adx_rsi_trend_14_25_sma200",
+      "family": "combinada",
+      "description": "ADX e direcionais confirmam forca compradora acima da media de tendencia.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "adx_rsi_trend_21_20_sma200",
+      "family": "combinada",
+      "description": "ADX e direcionais confirmam forca compradora acima da media de tendencia.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "adx_trend_14_15_sma50",
+      "family": "combinada",
+      "description": "ADX e direcionais confirmam forca compradora acima da media de tendencia.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "adx_trend_14_20_sma100",
+      "family": "combinada",
+      "description": "ADX e direcionais confirmam forca compradora acima da media de tendencia.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "adx_trend_14_25_sma200",
+      "family": "combinada",
+      "description": "ADX e direcionais confirmam forca compradora acima da media de tendencia.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "adx_trend_21_20_sma100",
+      "family": "combinada",
+      "description": "ADX e direcionais confirmam forca compradora acima da media de tendencia.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "adx_trend_21_25_sma200",
+      "family": "combinada",
+      "description": "ADX e direcionais confirmam forca compradora acima da media de tendencia.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "adx_trend_7_15_sma50",
+      "family": "combinada",
+      "description": "ADX e direcionais confirmam forca compradora acima da media de tendencia.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "adx_trend_7_20_sma100",
+      "family": "combinada",
+      "description": "ADX e direcionais confirmam forca compradora acima da media de tendencia.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "cci_momentum_10_0_m100_sma50",
+      "family": "combinada",
+      "description": "CCI identifica impulso ou pullback dentro de uma tendencia de alta.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "cci_momentum_14_0_m100_sma100",
+      "family": "combinada",
+      "description": "CCI identifica impulso ou pullback dentro de uma tendencia de alta.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "cci_momentum_20_0_m100_sma100",
+      "family": "combinada",
+      "description": "CCI identifica impulso ou pullback dentro de uma tendencia de alta.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "cci_momentum_20_50_m50_sma200",
+      "family": "combinada",
+      "description": "CCI identifica impulso ou pullback dentro de uma tendencia de alta.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "cci_momentum_30_50_m50_sma200",
+      "family": "combinada",
+      "description": "CCI identifica impulso ou pullback dentro de uma tendencia de alta.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "cci_trend_10_m100_100_sma50",
+      "family": "combinada",
+      "description": "CCI identifica impulso ou pullback dentro de uma tendencia de alta.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "cci_trend_14_m100_100_sma100",
+      "family": "combinada",
+      "description": "CCI identifica impulso ou pullback dentro de uma tendencia de alta.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "cci_trend_20_m100_100_sma100",
+      "family": "combinada",
+      "description": "CCI identifica impulso ou pullback dentro de uma tendencia de alta.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "cci_trend_20_m100_100_sma200",
+      "family": "combinada",
+      "description": "CCI identifica impulso ou pullback dentro de uma tendencia de alta.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "cci_trend_30_m100_100_sma200",
+      "family": "combinada",
+      "description": "CCI identifica impulso ou pullback dentro de uma tendencia de alta.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "ema100_stochastic_14_20_80",
+      "family": "combinada",
+      "description": "Media movel define a tendencia; Estocastico define o pullback e a saida.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "ema200_stochastic_14_20_80",
+      "family": "combinada",
+      "description": "Media movel define a tendencia; Estocastico define o pullback e a saida.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "ema20_stochastic_14_20_80",
+      "family": "combinada",
+      "description": "Media movel define a tendencia; Estocastico define o pullback e a saida.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "ema50_stochastic_14_20_80",
+      "family": "combinada",
+      "description": "Media movel define a tendencia; Estocastico define o pullback e a saida.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "ema50_stochastic_21_30_75",
+      "family": "combinada",
+      "description": "Media movel define a tendencia; Estocastico define o pullback e a saida.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "heikin_ashi_stochastic",
+      "family": "combinada",
+      "description": "Reversao Heikin-Ashi confirmada por cruzamento estocastico em zona extrema.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "rsi_bollinger_14_30_bb20_2",
+      "family": "combinada",
+      "description": "RSI em sobrevenda confirmado pela banda inferior de Bollinger.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "rsi_bollinger_14_30_bb20_2_trend200",
+      "family": "combinada",
+      "description": "RSI em sobrevenda confirmado pela banda inferior de Bollinger.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "rsi_bollinger_14_30_bb30_25",
+      "family": "combinada",
+      "description": "RSI em sobrevenda confirmado pela banda inferior de Bollinger.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "rsi_bollinger_14_35_bb10_15",
+      "family": "combinada",
+      "description": "RSI em sobrevenda confirmado pela banda inferior de Bollinger.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "rsi_bollinger_2_5_bb20_2",
+      "family": "combinada",
+      "description": "RSI em sobrevenda confirmado pela banda inferior de Bollinger.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "rsi_bollinger_2_5_bb20_2_trend100",
+      "family": "combinada",
+      "description": "RSI em sobrevenda confirmado pela banda inferior de Bollinger.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "rsi_bollinger_2_5_bb20_2_trend200",
+      "family": "combinada",
+      "description": "RSI em sobrevenda confirmado pela banda inferior de Bollinger.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "rsi_bollinger_3_10_bb20_2",
+      "family": "combinada",
+      "description": "RSI em sobrevenda confirmado pela banda inferior de Bollinger.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "rsi_bollinger_5_20_bb20_2",
+      "family": "combinada",
+      "description": "RSI em sobrevenda confirmado pela banda inferior de Bollinger.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "rsi_bollinger_5_20_bb20_2_trend100",
+      "family": "combinada",
+      "description": "RSI em sobrevenda confirmado pela banda inferior de Bollinger.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "sma100_stochastic_14_20_80",
+      "family": "combinada",
+      "description": "Media movel define a tendencia; Estocastico define o pullback e a saida.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "sma200_stochastic_14_20_80",
+      "family": "combinada",
+      "description": "Media movel define a tendencia; Estocastico define o pullback e a saida.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "sma200_stochastic_21_30_75",
+      "family": "combinada",
+      "description": "Media movel define a tendencia; Estocastico define o pullback e a saida.",
+      "source_module": "strategies.py"
+    },
+    {
+      "name": "sma20_stochastic_14_20_80",
+      "family": "combinada",
+      "description": "Media movel define a tendencia; Estocastico define o pullback e a saida.",
+      "source_module": "strategies.py"
+    }
+  ]
+}
