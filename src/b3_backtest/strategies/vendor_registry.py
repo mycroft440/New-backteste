@@ -198,7 +198,19 @@ def run_vendored_strategy(frame: pd.DataFrame, name: str) -> list[int]:
     positions = list(strategy.function(candles))
     if len(positions) != len(candles):
         raise RuntimeError(f"{name}: strategy returned {len(positions)} states for {len(candles)} candles")
-    normalized_positions = [int(bool(value)) for value in positions]
-    if any(value not in (0, 1) for value in normalized_positions):
-        raise RuntimeError(f"{name}: strategy returned non-binary state")
+
+    normalized_positions: list[int] = []
+    for index, value in enumerate(positions):
+        try:
+            is_zero = bool(value == 0)
+            is_one = bool(value == 1)
+        except Exception as exc:
+            raise RuntimeError(
+                f"{name}: strategy returned non-scalar state at index {index}: {value!r}"
+            ) from exc
+        if not (is_zero or is_one):
+            raise RuntimeError(
+                f"{name}: strategy returned non-binary state at index {index}: {value!r}"
+            )
+        normalized_positions.append(1 if is_one else 0)
     return normalized_positions
