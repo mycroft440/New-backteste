@@ -12,7 +12,7 @@ import pandas as pd
 
 from b3_backtest.backtest import simulate_from_positions
 from b3_backtest.data_quality import apply_known_scale_repairs, assert_trusted_window
-from b3_backtest.strategies.catalog import SOURCE_COMMIT, list_strategies, run_strategy
+from b3_backtest.strategies.catalog import SOURCE_COMMIT, list_original_strategies, run_strategy
 
 INITIAL_CASH = 1000.0
 EXPECTED_TICKERS = 40
@@ -256,7 +256,7 @@ def _causality_check(frame: pd.DataFrame, specs) -> int:
 def main() -> None:
     original, Candle, source_commit = _source_modules()
     source_defs = {item.name: item for item in original._build_definitions()}
-    specs = list_strategies()
+    specs = list_original_strategies()
     if len(specs) != EXPECTED_STRATEGIES:
         raise AssertionError(f"expected {EXPECTED_STRATEGIES} strategies, found {len(specs)}")
     missing_source = [spec.name for spec in specs if spec.name not in source_defs]
