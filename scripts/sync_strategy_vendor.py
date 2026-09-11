@@ -16,6 +16,10 @@ ENTRY_MODULES = (
     "researched_strategies.py",
     "smi_ergodic_strategies.py",
     "trend_strategies.py",
+    # vendor_registry imports these directly, so they are explicit roots even if
+    # none of the strategy modules happens to import them at this source commit.
+    "extensions.py",
+    "candles.py",
 )
 
 
@@ -79,8 +83,9 @@ def main() -> int:
     target_root.mkdir(parents=True, exist_ok=True)
     target_root.parent.mkdir(parents=True, exist_ok=True)
 
-    # Do not copy the source package __init__.py: it imports unrelated application
-    # modules. The vendored package intentionally exposes only the strategy subset.
+    # The source package __init__.py installs unrelated runtime patches. For the
+    # signal catalog we need only the pinned strategy implementation modules, so
+    # the vendored package gets a deliberately inert initializer.
     (target_root.parent / "__init__.py").write_text(
         '"""Vendored strategy packages used for reproducible signal execution."""\n',
         encoding="utf-8",
