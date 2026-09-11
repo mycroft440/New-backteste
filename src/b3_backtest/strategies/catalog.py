@@ -1,14 +1,18 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
+from pathlib import Path
 
 import pandas as pd
 
 from .core import run_engine, signal_events
+from .vendor_registry import run_vendored_strategy
 
 SOURCE_REPOSITORY = "mycroft440/b3-strategy-lab"
 SOURCE_COMMIT = "8cb3a9e906dfae69e74d26d8cd3a9c76c380d55d"
 SOURCE_MODULE = "b3_strategy_lab/additional_strategies.py"
+BATCH_DIR = Path(__file__).resolve().parent / "catalog_batches"
 
 
 @dataclass(frozen=True)
@@ -18,6 +22,8 @@ class StrategySpec:
     description: str
     engine: str
     parameters: dict[str, object]
+    batch: str = "original_001"
+    source_module: str = SOURCE_MODULE
 
 
 def _spec(
@@ -30,8 +36,7 @@ def _spec(
     return StrategySpec(name, family, description, engine, parameters)
 
 
-SPECS: tuple[StrategySpec, ...] = (
-    # Moving-average crosses: source-faithful variants from b3-strategy-lab.
+NATIVE_SPECS: tuple[StrategySpec, ...] = (
     _spec("sma_cross_5_20", "tendencia", "Cruzamento de medias SMA 5/20.", "moving_average_cross", average_type="sma", fast=5, slow=20),
     _spec("sma_cross_10_50", "tendencia", "Cruzamento de medias SMA 10/50.", "moving_average_cross", average_type="sma", fast=10, slow=50),
     _spec("sma_cross_20_100", "tendencia", "Cruzamento de medias SMA 20/100.", "moving_average_cross", average_type="sma", fast=20, slow=100),
@@ -42,8 +47,6 @@ SPECS: tuple[StrategySpec, ...] = (
     _spec("ema_cross_20_50", "tendencia", "Cruzamento de medias EMA 20/50.", "moving_average_cross", average_type="ema", fast=20, slow=50),
     _spec("ema_cross_50_100", "tendencia", "Cruzamento de medias EMA 50/100.", "moving_average_cross", average_type="ema", fast=50, slow=100),
     _spec("ema_cross_100_200", "tendencia", "Cruzamento de medias EMA 100/200.", "moving_average_cross", average_type="ema", fast=100, slow=200),
-
-    # MACD variants.
     _spec("macd_5_35_5", "tendencia", "MACD 5/35/5.", "macd", fast=5, slow=35, signal_window=5, trend_window=0),
     _spec("macd_8_17_9", "tendencia", "MACD 8/17/9.", "macd", fast=8, slow=17, signal_window=9, trend_window=0),
     _spec("macd_10_30_9", "tendencia", "MACD 10/30/9.", "macd", fast=10, slow=30, signal_window=9, trend_window=0),
@@ -54,8 +57,6 @@ SPECS: tuple[StrategySpec, ...] = (
     _spec("macd_12_26_9_trend50", "tendencia", "MACD 12/26/9 com filtro SMA 50.", "macd", fast=12, slow=26, signal_window=9, trend_window=50),
     _spec("macd_12_26_9_trend100", "tendencia", "MACD 12/26/9 com filtro SMA 100.", "macd", fast=12, slow=26, signal_window=9, trend_window=100),
     _spec("macd_12_26_9_trend200", "tendencia", "MACD 12/26/9 com filtro SMA 200.", "macd", fast=12, slow=26, signal_window=9, trend_window=200),
-
-    # Donchian breakout variants.
     _spec("donchian_breakout_10_5", "rompimento", "Donchian 10/5.", "donchian", entry_window=10, exit_window=5, trend_window=0),
     _spec("donchian_breakout_20_10", "rompimento", "Donchian 20/10.", "donchian", entry_window=20, exit_window=10, trend_window=0),
     _spec("donchian_breakout_40_20", "rompimento", "Donchian 40/20.", "donchian", entry_window=40, exit_window=20, trend_window=0),
@@ -66,8 +67,6 @@ SPECS: tuple[StrategySpec, ...] = (
     _spec("donchian_breakout_55_20_trend100", "rompimento", "Donchian 55/20 com filtro SMA 100.", "donchian", entry_window=55, exit_window=20, trend_window=100),
     _spec("donchian_breakout_55_20_trend200", "rompimento", "Donchian 55/20 com filtro SMA 200.", "donchian", entry_window=55, exit_window=20, trend_window=200),
     _spec("donchian_breakout_100_50_trend200", "rompimento", "Donchian 100/50 com filtro SMA 200.", "donchian", entry_window=100, exit_window=50, trend_window=200),
-
-    # RSI mean-reversion variants.
     _spec("rsi2_reversion_5_70", "reversao", "Reversao RSI(2): 5/70, max 10 pregoes.", "rsi_reversion", rsi_period=2, lower=5.0, upper=70.0, trend_window=0, max_hold=10),
     _spec("rsi2_reversion_10_70", "reversao", "Reversao RSI(2): 10/70, max 10 pregoes.", "rsi_reversion", rsi_period=2, lower=10.0, upper=70.0, trend_window=0, max_hold=10),
     _spec("rsi3_reversion_15_70", "reversao", "Reversao RSI(3): 15/70, max 15 pregoes.", "rsi_reversion", rsi_period=3, lower=15.0, upper=70.0, trend_window=0, max_hold=15),
@@ -80,16 +79,58 @@ SPECS: tuple[StrategySpec, ...] = (
     _spec("rsi14_reversion_30_70_trend200", "reversao", "RSI(14) 30/70 com filtro SMA 200.", "rsi_reversion", rsi_period=14, lower=30.0, upper=70.0, trend_window=200, max_hold=30),
 )
 
-if len(SPECS) != 40:
-    raise RuntimeError(f"invalid initial catalog size: {len(SPECS)}; expected 40")
-if len({spec.name for spec in SPECS}) != len(SPECS):
+if len(NATIVE_SPECS) != 40:
+    raise RuntimeError(f"invalid initial catalog size: {len(NATIVE_SPECS)}; expected 40")
+if len({spec.name for spec in NATIVE_SPECS}) != len(NATIVE_SPECS):
     raise RuntimeError("initial strategy catalog contains duplicate names")
 
+
+def _load_vendored_specs() -> tuple[StrategySpec, ...]:
+    if not BATCH_DIR.exists():
+        return ()
+    specs: list[StrategySpec] = []
+    for path in sorted(BATCH_DIR.glob("*.json")):
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        items = payload.get("strategies", [])
+        if len(items) > 40:
+            raise RuntimeError(f"strategy batch {path.name} has {len(items)} items; maximum is 40")
+        for item in items:
+            specs.append(
+                StrategySpec(
+                    name=str(item["name"]),
+                    family=str(item["family"]),
+                    description=str(item["description"]),
+                    engine="vendored",
+                    parameters={},
+                    batch=path.stem,
+                    source_module=str(item["source_module"]),
+                )
+            )
+    return tuple(specs)
+
+
+VENDORED_SPECS = _load_vendored_specs()
+SPECS: tuple[StrategySpec, ...] = NATIVE_SPECS + VENDORED_SPECS
+if len({spec.name for spec in SPECS}) != len(SPECS):
+    raise RuntimeError("full strategy catalog contains duplicate names")
 CATALOG: dict[str, StrategySpec] = {spec.name: spec for spec in SPECS}
 
 
 def list_strategies() -> tuple[StrategySpec, ...]:
+    """Return every stock BUY/SELL strategy in the organized catalog."""
     return SPECS
+
+
+def list_original_strategies() -> tuple[StrategySpec, ...]:
+    """Return the original 40-strategy benchmark set for reproducibility."""
+    return NATIVE_SPECS
+
+
+def list_strategy_batches() -> dict[str, tuple[StrategySpec, ...]]:
+    batches: dict[str, list[StrategySpec]] = {}
+    for spec in SPECS:
+        batches.setdefault(spec.batch, []).append(spec)
+    return {name: tuple(values) for name, values in sorted(batches.items())}
 
 
 def get_strategy(name: str) -> StrategySpec:
@@ -101,6 +142,8 @@ def get_strategy(name: str) -> StrategySpec:
 
 def run_strategy(frame: pd.DataFrame, name: str) -> list[int]:
     spec = get_strategy(name)
+    if spec.engine == "vendored":
+        return run_vendored_strategy(frame, spec.name)
     return run_engine(frame, spec.engine, spec.parameters)
 
 
