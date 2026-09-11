@@ -1,0 +1,141 @@
+name: Materialize complete strategy catalog
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/sync_strategy_vendor.py"
+      - "scripts/generate_strategy_catalog.py"
+      - "src/b3_backtest/strategies/catalog.py"
+      - "src/b3_backtest/strategies/vendor_registry.py"
+      - ".github/workflows/materialize-strategy-catalog.yml"
+
+permissions:
+  contents: write
+
+env:
+  PYTHONPATH: src
+  SOURCE_COMMIT: 8cb3a9e906dfae69e74d26d8cd3a9c76c380d55d
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout target repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout pinned strategy source
+        uses: actions/checkout@v4
+        with:
+          repository: mycroft440/b3-strategy-lab
+          ref: 8cb3a9e906dfae69e74d26d8cd3a9c76c380d55d
+          path: .catalog-source
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install "pandas>=2.2,<3" pytest
+
+      - name: Verify pinned source commit
+        run: |
+          actual="$(git -C .catalog-source rev-parse HEAD)"
+          test "$actual" = "$SOURCE_COMMIT"
+
+      - name: Vendor source strategy closure
+        run: |
+          python scripts/sync_strategy_vendor.py \
+            .catalog-source/b3_strategy_lab \
+            src/b3_backtest/strategies/vendor/b3_strategy_lab
+
+      - name: Generate organized strategy batches
+        run: python scripts/generate_strategy_catalog.py
+
+      - name: Validate complete catalog and execute every strategy
+        run: |
+          python - <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          import pandas as pd
+
+          sys.path.insert(0, "src")
+          from b3_backtest.strategies import (
+              list_original_strategies,
+              list_strategies,
+              list_strategy_batches,
+              run_strategy,
+          )
+          from b3_backtest.strategies.vendor_registry import discover_vendored_strategies
+
+          manifest_path = Path("src/b3_backtest/strategies/catalog_manifest.json")
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          original = list_original_strategies()
+          full = list_strategies()
+          batches = list_strategy_batches()
+          discovered = discover_vendored_strategies()
+
+          assert len(original) == 40
+          assert len({spec.name for spec in original}) == 40
+          assert manifest["source_commit"] == "8cb3a9e906dfae69e74d26d8cd3a9c76c380d55d"
+          assert manifest["source_unique_strategy_count"] == len(discovered)
+          assert manifest["vendored_strategy_count"] > 0
+          assert manifest["total_catalog_strategy_count"] == len(full)
+          assert len({spec.name for spec in full}) == len(full)
+          assert all(len(values) <= 40 for values in batches.values())
+          assert set(spec.name for spec in original).issubset(spec.name for spec in full)
+
+          frame = pd.read_csv("data/quotes/PETR4.csv").tail(1600).reset_index(drop=True)
+          failures = []
+          for index, spec in enumerate(full, start=1):
+              try:
+                  positions = run_strategy(frame, spec.name)
+                  if len(positions) != len(frame):
+                      raise AssertionError(f"returned {len(positions)} states for {len(frame)} candles")
+                  if not set(positions).issubset({0, 1}):
+                      raise AssertionError("returned non-binary state")
+              except Exception as exc:  # keep all failures visible in one CI run
+                  failures.append(f"{spec.name}: {type(exc).__name__}: {exc}")
+              if index % 50 == 0:
+                  print(f"validated {index}/{len(full)} strategies", flush=True)
+
+          if failures:
+              raise SystemExit("strategy execution failures:\n" + "\n".join(failures))
+
+          print(json.dumps({
+              "status": "PASS",
+              "original": len(original),
+              "source_unique": len(discovered),
+              "vendored": manifest["vendored_strategy_count"],
+              "total_catalog": len(full),
+              "batches": len(batches),
+              "families": manifest["families"],
+          }, indent=2, ensure_ascii=False))
+          PY
+
+      - name: Run repository tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Commit materialized catalog
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            src/b3_backtest/strategies/vendor \
+            src/b3_backtest/strategies/catalog_batches \
+            src/b3_backtest/strategies/catalog_manifest.json
+          if git diff --cached --quiet; then
+            echo "Catalog already materialized and current."
+          else
+            git commit -m "strategy: materialize complete catalog [skip ci]"
+            git push
+          fi
